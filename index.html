@@ -3,63 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finance Ledger App</title>
+    <title>FIRM Ledger Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/anonymous.png">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden-view { display: none !important; }
-        input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 16px; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 14px; }
         .text-navy { color: #0f172a; }
         .bg-navy { background-color: #0f172a; }
         .text-emerald { color: #059669; }
         .bg-emerald { background-color: #059669; }
+        
+        /* Role-Based Access Control */
+        body[data-role="viewer"] .admin-only { display: none !important; }
+        
+        /* Segmented Control Styling */
+        .segment-active { background-color: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .segment-inactive { color: #64748b; }
+        .segment-inactive:hover { color: #1e293b; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans pb-10 min-h-screen flex flex-col">
+<body class="bg-slate-100 font-sans pb-10 min-h-screen flex flex-col text-sm" data-role="viewer">
 
     <!-- ========================================== -->
     <!-- LOGIN SCREEN                               -->
     <!-- ========================================== -->
-    <div id="auth-container" class="flex-1 flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-blue-600">
-            <h2 class="text-2xl font-bold text-navy mb-2 text-center">FIRM Ledger</h2>
-            <p class="text-sm text-gray-500 text-center mb-6">Enter your credentials to access the database.</p>
+    <div id="auth-container" class="flex-1 flex items-center justify-center p-4 bg-slate-50">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-slate-100">
+            <div class="w-12 h-12 bg-navy text-white rounded-lg flex items-center justify-center text-xl font-bold mb-4 mx-auto shadow-md">F</div>
+            <h2 class="text-2xl font-extrabold text-navy mb-1 text-center tracking-tight">Firm Ledger</h2>
+            <p class="text-xs text-slate-500 text-center mb-6">Secure access required.</p>
             
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Email ID</label>
-                    <input type="email" id="login-email" class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-600 focus:outline-none" required />
+                    <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition" required />
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                    <input type="password" id="login-password" class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-600 focus:outline-none" required />
+                    <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition" required />
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">Sign In</button>
-                <p id="login-error" class="text-red-500 text-sm text-center font-semibold mt-2 hidden-view"></p>
+                <button type="submit" class="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">Sign In</button>
+                <p id="login-error" class="text-red-500 text-xs text-center font-semibold mt-2 hidden-view"></p>
             </form>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- MAIN APPLICATION (Hidden until Login)      -->
+    <!-- MAIN APPLICATION                           -->
     <!-- ========================================== -->
     <div id="app-wrapper" class="hidden-view w-full">
         
         <!-- App Navigation Bar -->
         <nav class="bg-navy text-white shadow-md sticky top-0 z-50">
-            <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center h-auto md:h-16 py-2 md:py-0 gap-3">
-                <h1 class="font-bold text-xl tracking-wide">FIRM<span class="text-blue-400">Ledger</span></h1>
-                
-                <!-- Master Mode Switcher -->
-                <div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-                    <button onclick="setMasterMode('online')" id="master-online" class="px-6 py-1.5 rounded-md text-sm font-bold bg-blue-600 text-white shadow-sm transition">ONLINE</button>
-                    <button onclick="setMasterMode('offline')" id="master-offline" class="px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition">OFFLINE</button>
+            <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center h-auto md:h-14 py-2 md:py-0 gap-3">
+                <div class="flex items-center gap-4 w-full md:w-auto justify-between">
+                    <h1 class="font-extrabold text-lg tracking-tight">FIRM<span class="text-blue-400">Ledger</span></h1>
+                    
+                    <div class="flex bg-slate-800 rounded-lg p-1">
+                        <button onclick="setMasterMode('online')" id="master-online" class="px-4 py-1 rounded-md text-xs font-bold bg-white text-navy shadow-sm transition">ONLINE</button>
+                        <button onclick="setMasterMode('offline')" id="master-offline" class="px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition">OFFLINE</button>
+                    </div>
                 </div>
 
-                <div class="flex space-x-1">
-                    <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-2 rounded-md text-sm font-medium bg-slate-700 transition">Dashboard</button>
-                    <button onclick="switchView('list')" id="nav-list" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700 transition">Customers</button>
-                    <button onclick="switchView('history')" id="nav-history" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700 transition">History</button>
-                    <button onclick="logout()" class="px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-slate-700 transition ml-4">Logout</button>
+                <div class="flex space-x-1 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+                    <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 transition whitespace-nowrap">Dashboard</button>
+                    <button onclick="switchView('list')" id="nav-list" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">Customers</button>
+                    <button onclick="switchView('netcash')" id="nav-netcash" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">Net Cash</button>
+                    <button onclick="switchView('history')" id="nav-history" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">History</button>
+                    <div class="w-px bg-slate-700 mx-2"></div>
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-400 hover:bg-slate-800 transition whitespace-nowrap flex items-center gap-1">
+                        <span id="role-indicator" class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300 uppercase"></span> Logout
+                    </button>
                 </div>
             </div>
         </nav>
@@ -69,134 +94,136 @@
             <!-- ========================================== -->
             <!-- VIEW 1: DASHBOARD                          -->
             <!-- ========================================== -->
-            <div id="view-dashboard" class="space-y-4 md:space-y-6">
+            <div id="view-dashboard" class="space-y-4">
                 
-                <!-- Online Sub-Toggle (Daily/Weekly) -->
-                <div id="online-subtabs" class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-center gap-2">
-                    <button onclick="setSubMode('daily')" id="subtab-daily" class="px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition">Daily Accounts</button>
-                    <button onclick="setSubMode('weekly')" id="subtab-weekly" class="px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition">Weekly Accounts</button>
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                    <div id="online-subtabs" class="bg-slate-200 p-1 rounded-lg flex justify-center w-full sm:w-auto shadow-inner">
+                        <button onclick="setSubMode('daily')" id="subtab-daily" class="flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition">Daily</button>
+                        <button onclick="setSubMode('weekly')" id="subtab-weekly" class="flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition">Weekly</button>
+                    </div>
+
+                    <!-- AS OF DATE SELECTOR -->
+                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200 w-full sm:w-auto justify-center">
+                        <label class="text-xs font-bold text-slate-500 uppercase px-1">Ledger As Of:</label>
+                        <input type="date" id="dash-as-of-date" onchange="calculateAndRender()" class="bg-white border border-slate-200 p-1 rounded text-xs font-bold focus:border-blue-500 focus:outline-none text-navy">
+                    </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4" id="overview-card-border" style="border-color: #3b82f6;">
-                    <div class="flex justify-between items-start">
-                        <h3 class="text-md font-semibold text-gray-700">Customer Overview</h3>
-                        <span id="active-ledger-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700">Online Daily Ledger</span>
+                <!-- Main Overview Card -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full" id="overview-color-bar" style="background-color: #3b82f6;"></div>
+                    <div class="flex justify-between items-start pl-2">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Segment Overview</h3>
+                        <span id="active-ledger-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">Online Daily</span>
                     </div>
-                    <div class="mt-3">
-                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Segment Grand Total (GT)</p>
-                        <p class="text-4xl md:text-5xl font-bold text-navy tracking-tight" id="dash-gt">₹0.00</p>
+                    <div class="mt-2 pl-2">
+                        <p class="text-3xl md:text-5xl font-extrabold text-navy tracking-tight" id="dash-gt">₹0.00</p>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Raw Grand Total (Calculated up to selected date)</p>
                     </div>
 
                     <!-- ONLINE ONLY: Customer Deduction % -->
-                    <div id="online-deduction-container" class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                    <div id="online-deduction-container" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between pl-2">
                         <div>
-                            <p class="text-sm font-bold text-blue-800">Online Customer Deduction</p>
-                            <p class="text-xs text-blue-600">Deducted directly from raw balances</p>
+                            <p class="text-xs font-bold text-slate-700">Online Customer Deduction</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span id="display-p-online" class="text-xl font-bold text-blue-800">10%</span>
-                            <input type="number" id="input-p-online" value="10" class="hidden-view w-20 border border-blue-300 p-1 rounded text-center font-bold" />
-                            <button id="edit-btn-p-online" onclick="toggleEdit('p-online')" class="text-gray-500 hover:text-blue-600 bg-white p-1.5 rounded shadow-sm border">✏️</button>
-                            <button id="save-btn-p-online" onclick="saveEdit('p-online')" class="hidden-view text-green-600 hover:text-green-800 bg-white p-1.5 rounded shadow-sm border">✅</button>
+                            <span id="display-p-online" class="text-lg font-bold text-blue-600 bg-blue-50 px-2 rounded border border-blue-100">10%</span>
+                            <input type="number" id="input-p-online" value="10" class="hidden-view w-16 border border-blue-300 p-1 rounded text-center font-bold text-sm" />
+                            <button id="edit-btn-p-online" onclick="toggleEdit('p-online')" class="admin-only text-slate-400 hover:text-blue-600 transition">✏️</button>
+                            <button id="save-btn-p-online" onclick="saveEdit('p-online')" class="hidden-view text-emerald-600 transition">✅</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Controls Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- GT Adjustment -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-purple-600 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-md font-semibold text-gray-700">GT Adjustment</h3>
-                                <div class="flex items-center gap-1">
-                                    <span id="display-p1" class="font-bold text-purple-700 bg-purple-100 px-2 rounded">10%</span>
-                                    <input type="number" id="input-p1" value="10" class="hidden-view w-16 border border-purple-300 p-0.5 rounded text-center text-sm" />
-                                    <button id="edit-btn-p1" onclick="toggleEdit('p1')" class="text-xs p-1">✏️</button>
-                                    <button id="save-btn-p1" onclick="saveEdit('p1')" class="hidden-view text-xs p-1">✅</button>
-                                </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase">GT Adjustment</h3>
+                            <div class="flex items-center gap-2">
+                                <span id="display-p1" class="font-bold text-purple-600 bg-purple-50 px-1.5 rounded border border-purple-100">10%</span>
+                                <input type="number" id="input-p1" value="10" class="hidden-view w-12 border border-purple-300 p-0.5 rounded text-center text-xs" />
+                                <button id="edit-btn-p1" onclick="toggleEdit('p1')" class="admin-only text-slate-400 hover:text-purple-600 text-xs">✏️</button>
+                                <button id="save-btn-p1" onclick="saveEdit('p1')" class="hidden-view text-emerald-600 text-xs">✅</button>
                             </div>
                         </div>
-                        <div class="bg-purple-50 p-3 rounded-lg border border-purple-100 mt-auto">
-                            <p class="text-xs text-purple-700 font-semibold">Adjustment Amount</p>
-                            <p class="font-bold text-purple-800 text-lg" id="dash-gt-adj">₹0.00</p>
+                        <div class="mt-auto">
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase">Amount</p>
+                            <p class="font-bold text-slate-800 text-lg" id="dash-gt-adj">₹0.00</p>
                         </div>
                     </div>
 
                     <!-- Total Balance -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-emerald-500 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-md font-semibold text-gray-700">Total Balance (TB)</h3>
-                                <div class="flex items-center gap-1">
-                                    <span id="display-p2" class="font-bold text-emerald-700 bg-emerald-100 px-2 rounded">5%</span>
-                                    <input type="number" id="input-p2" value="5" class="hidden-view w-16 border border-emerald-300 p-0.5 rounded text-center text-sm" />
-                                    <button id="edit-btn-p2" onclick="toggleEdit('p2')" class="text-xs p-1">✏️</button>
-                                    <button id="save-btn-p2" onclick="saveEdit('p2')" class="hidden-view text-xs p-1">✅</button>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-xs text-gray-500 uppercase font-bold mb-1">TB Amount Input</label>
-                                <input type="number" id="input-tb" value="25000" oninput="calculateAndRender()" class="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-emerald-500 focus:outline-none transition" />
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase">Total Balance (TB)</h3>
+                            <div class="flex items-center gap-2">
+                                <span id="display-p2" class="font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded border border-emerald-100">5%</span>
+                                <input type="number" id="input-p2" value="5" class="hidden-view w-12 border border-emerald-300 p-0.5 rounded text-center text-xs" />
+                                <button id="edit-btn-p2" onclick="toggleEdit('p2')" class="admin-only text-slate-400 hover:text-emerald-600 text-xs">✏️</button>
+                                <button id="save-btn-p2" onclick="saveEdit('p2')" class="hidden-view text-emerald-600 text-xs">✅</button>
                             </div>
                         </div>
-                        <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex justify-between items-center mt-auto">
+                        <div class="mb-3">
+                            <input type="number" id="input-tb" value="25000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg focus:bg-white focus:border-emerald-500 focus:outline-none text-sm" />
+                            <p class="viewer-only font-semibold text-slate-600 text-sm hidden" id="viewer-tb">₹25,000</p>
+                        </div>
+                        <div class="flex justify-between items-end mt-auto bg-slate-50 p-2 rounded-lg">
                             <div>
-                                <p class="text-xs text-emerald-700 font-semibold">TB Calc Amount</p>
-                                <p class="font-bold text-emerald-800" id="dash-tb-amt">₹0.00</p>
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Calc Amt</p>
+                                <p class="font-bold text-slate-800" id="dash-tb-amt">₹0.00</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-xs text-emerald-700 font-semibold">Rent</p>
-                                <p class="font-bold text-emerald-800" id="dash-tb-mult">₹0.00</p>
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Multiplier</p>
+                                <p class="font-bold text-slate-800" id="dash-tb-mult">₹0.00</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Line Amount -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-orange-500 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-md font-semibold text-gray-700">Line Amount</h3>
-                                <div class="flex items-center gap-1">
-                                    <span id="display-p3" class="font-bold text-orange-700 bg-orange-100 px-2 rounded">15%</span>
-                                    <input type="number" id="input-p3" value="15" class="hidden-view w-16 border border-orange-300 p-0.5 rounded text-center text-sm" />
-                                    <button id="edit-btn-p3" onclick="toggleEdit('p3')" class="text-xs p-1">✏️</button>
-                                    <button id="save-btn-p3" onclick="saveEdit('p3')" class="hidden-view text-xs p-1">✅</button>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-xs text-gray-500 uppercase font-bold mb-1">LA Amount Input</label>
-                                <input type="number" id="input-la" value="-15000" oninput="calculateAndRender()" class="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-orange-500 focus:outline-none transition" />
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase">Line Amount</h3>
+                            <div class="flex items-center gap-2">
+                                <span id="display-p3" class="font-bold text-orange-600 bg-orange-50 px-1.5 rounded border border-orange-100">15%</span>
+                                <input type="number" id="input-p3" value="15" class="hidden-view w-12 border border-orange-300 p-0.5 rounded text-center text-xs" />
+                                <button id="edit-btn-p3" onclick="toggleEdit('p3')" class="admin-only text-slate-400 hover:text-orange-600 text-xs">✏️</button>
+                                <button id="save-btn-p3" onclick="saveEdit('p3')" class="hidden-view text-emerald-600 text-xs">✅</button>
                             </div>
                         </div>
-                        <div class="bg-orange-50 p-3 rounded-lg border border-orange-100 mt-auto">
-                            <p class="text-xs text-orange-600 font-semibold">Used Line Amount</p>
-                            <p class="font-bold text-orange-700 text-lg" id="dash-used-la">₹0.00</p>
+                        <div class="mb-3">
+                            <input type="number" id="input-la" value="-15000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg focus:bg-white focus:border-orange-500 focus:outline-none text-sm" />
+                            <p class="viewer-only font-semibold text-slate-600 text-sm hidden" id="viewer-la">-₹15,000</p>
+                        </div>
+                        <div class="mt-auto">
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase">Used Amount</p>
+                            <p class="font-bold text-slate-800 text-lg" id="dash-used-la">₹0.00</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Final Summary & Save Section -->
-                <div class="bg-navy text-white p-5 md:p-6 rounded-xl shadow-lg mt-6">
-                    <h3 class="text-md font-semibold text-gray-300 uppercase tracking-wide mb-3">Final Settlement</h3>
-                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-t border-slate-700 pt-4 gap-4">
-                        <div class="text-sm space-y-2 text-gray-400 w-full lg:w-auto font-mono">
-                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ GT Adjustment:</span> <span id="sum-gt-adj">₹0.00</span></div>
-                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ TB Percentage:</span> <span id="sum-tb-amt">₹0.00</span></div>
-                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ TB Multiplier:</span> <span id="sum-tb-mult">₹0.00</span></div>
-                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ Used Line Amt:</span> <span id="sum-la">₹0.00</span></div>
+                <!-- Final Summary & Save -->
+                <div class="bg-navy text-white p-5 rounded-2xl shadow-lg mt-4 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-slate-800 rounded-full opacity-50 blur-xl"></div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+                        <div class="text-xs space-y-1 text-slate-400 font-mono">
+                            <div class="flex gap-4"><span class="w-28">+ GT Adj:</span> <span id="sum-gt-adj" class="text-slate-200">₹0.00</span></div>
+                            <div class="flex gap-4"><span class="w-28">+ TB Perc:</span> <span id="sum-tb-amt" class="text-slate-200">₹0.00</span></div>
+                            <div class="flex gap-4"><span class="w-28">+ TB Mult:</span> <span id="sum-tb-mult" class="text-slate-200">₹0.00</span></div>
+                            <div class="flex gap-4"><span class="w-28">+ Used LA:</span> <span id="sum-la" class="text-slate-200">₹0.00</span></div>
                         </div>
-                        <div class="text-left lg:text-right w-full lg:w-auto bg-slate-800 p-4 rounded-lg border border-slate-600 shadow-inner">
-                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Final Grand Total</p>
-                            <p id="dash-final-total" class="text-3xl md:text-5xl font-bold">₹0.00</p>
+                        <div class="text-left md:text-right w-full md:w-auto">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Final Settlement</p>
+                            <p id="dash-final-total" class="text-3xl md:text-4xl font-extrabold tracking-tight">₹0.00</p>
                         </div>
                     </div>
-                    <div class="mt-6 border-t border-slate-700 pt-5 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                        <div class="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
-                            <label class="text-sm text-gray-400 whitespace-nowrap">Save snapshot to Database as:</label>
-                            <input type="date" id="save-statement-date" class="w-full sm:w-auto border-2 border-slate-600 bg-slate-800 text-white p-2 rounded-lg focus:outline-none focus:border-blue-400" required />
+                    
+                    <div class="admin-only mt-5 border-t border-slate-700/50 pt-4 flex flex-col sm:flex-row gap-3 items-center justify-between relative z-10">
+                        <div class="flex items-center gap-2 w-full sm:w-auto bg-slate-800/50 p-1.5 rounded-xl border border-slate-700/50">
+                            <input type="date" id="save-statement-date" class="w-full sm:w-auto bg-transparent text-white p-1 text-sm focus:outline-none" required />
                         </div>
-                        <button onclick="saveStatement()" class="w-full sm:w-auto bg-emerald text-white font-bold px-6 py-2 rounded-lg hover:bg-emerald-600 active:bg-green-700 transition">Save Ledger to Firebase</button>
+                        <button onclick="saveStatement()" class="w-full sm:w-auto bg-emerald text-white font-bold px-6 py-2 rounded-xl hover:bg-emerald-600 active:bg-green-700 transition shadow-md text-sm">Lock to Database</button>
                     </div>
                 </div>
             </div>
@@ -204,168 +231,180 @@
             <!-- ========================================== -->
             <!-- VIEW 2: CUSTOMER LIST                      -->
             <!-- ========================================== -->
-            <div id="view-list" class="bg-white p-4 md:p-6 rounded-xl shadow-sm hidden-view">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl md:text-2xl font-bold text-navy" id="dir-title">Online Directory</h2>
+            <div id="view-list" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                    <h2 class="text-lg font-extrabold text-navy" id="dir-title">Directory</h2>
                 </div>
                 
-                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-                    <form onsubmit="addCustomer(event)" class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="new-cust-name" placeholder="Enter Customer Name" class="flex-1 border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none" required />
-                        <select id="new-cust-freq" class="border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white font-medium">
-                            <option value="daily">Daily Account (Online)</option>
-                            <option value="weekly">Weekly Account (Online)</option>
+                <div class="admin-only bg-slate-50 p-3 rounded-xl border border-slate-200 mb-6">
+                    <form onsubmit="addCustomer(event)" class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="new-cust-name" placeholder="Customer Name" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none text-sm" required />
+                        <select id="new-cust-freq" class="bg-white border border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none text-sm font-medium">
+                            <option value="daily">Daily Account</option>
+                            <option value="weekly">Weekly Account</option>
                             <option value="offline">Offline Account</option>
                         </select>
-                        <button type="submit" class="bg-navy text-white font-semibold px-6 py-3 rounded-lg hover:bg-slate-800 transition w-full sm:w-auto">Add to Database</button>
+                        <button type="submit" class="bg-navy text-white font-bold px-4 py-2 rounded-lg hover:bg-slate-800 transition text-sm">Add User</button>
                     </form>
                 </div>
 
-                <div class="overflow-x-auto rounded-lg border">
-                    <table class="min-w-full text-left border-collapse whitespace-nowrap">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-600 text-xs md:text-sm uppercase tracking-wider">
-                                <th class="p-4 border-b">Customer Name</th>
-                                <th class="p-4 border-b">Category</th>
-                                <th class="p-4 border-b text-right">Raw Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customer-table-body" class="text-sm md:text-base"></tbody>
-                    </table>
-                </div>
+                <div id="directory-grid" class="grid grid-cols-1 gap-6"></div>
             </div>
 
             <!-- ========================================== -->
-            <!-- VIEW 3: CUSTOMER PROFILE                   -->
+            <!-- VIEW 3: KHATABOOK CUSTOMER PROFILE         -->
             <!-- ========================================== -->
             <div id="view-profile" class="hidden-view">
-                <button onclick="switchView('list')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-300 transition mb-4 flex items-center w-max">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back to Directory
+                <button onclick="switchView('list')" class="text-slate-500 text-xs font-bold hover:text-navy transition mb-4 flex items-center gap-1 uppercase tracking-wider">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back
                 </button>
 
-                <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 pb-4 mb-6 gap-2">
-                        <div>
-                            <h2 id="prof-name" class="text-xl md:text-2xl font-bold text-navy truncate">Customer Name</h2>
-                            <span id="prof-freq" class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded mt-1 inline-block">Daily</span>
+                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 mb-5 gap-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h2 id="prof-name" class="text-xl font-extrabold text-navy truncate">Customer Name</h2>
+                                <input type="text" id="edit-name-input" class="hidden-view text-lg font-bold border-b-2 border-blue-500 focus:outline-none px-1 w-full max-w-xs" />
+                                <button id="edit-name-btn" class="admin-only text-slate-400 hover:text-blue-600 transition" onclick="toggleEditName(true)">✏️</button>
+                                <button id="save-name-btn" class="hidden-view text-emerald-600 transition font-bold text-xs bg-emerald-50 px-2 py-1 rounded" onclick="saveName()">SAVE</button>
+                            </div>
+                            <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block">Daily</span>
                         </div>
-                        <div class="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
-                            <p class="text-xs text-slate-500 uppercase tracking-wide">Raw Balance</p>
-                            <p id="prof-balance" class="text-2xl font-bold">₹0.00</p>
+                        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-right w-full sm:w-auto">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Net Balance</p>
+                            <p id="prof-balance" class="text-2xl font-extrabold">₹0.00</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="md:col-start-3 md:row-start-1">
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <h3 class="font-bold text-navy mb-3">Add Entry to DB</h3>
-                                <p class="text-xs text-red-500 mb-3 font-semibold">*Entries cannot be edited once saved.</p>
-                                <form onsubmit="addTransaction(event)" class="space-y-3">
-                                    <div>
-                                        <input type="date" id="new-tx-date" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white" required />
-                                    </div>
-                                    <div>
-                                        <select id="new-tx-type" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white font-medium">
-                                            <option value="given">GIVEN (+ Profit)</option>
-                                            <option value="taken">TAKEN (- Loss)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <input type="number" id="new-tx-amount" min="0" placeholder="Amount (₹)" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white" required />
-                                    </div>
-                                    <button type="submit" class="w-full bg-blue-600 text-white font-bold px-4 py-3 rounded-lg hover:bg-blue-700 transition shadow-sm mt-2">Lock In Transaction</button>
-                                </form>
-                            </div>
-                        </div>
+                    <!-- Khatabook Style Entry Buttons -->
+                    <div class="admin-only grid grid-cols-2 gap-4 mb-6">
+                        <button onclick="openKhatabookForm('given')" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-extrabold py-4 rounded-xl transition flex flex-col items-center justify-center shadow-sm">
+                            <span class="text-xs uppercase tracking-widest opacity-80 mb-1">You Gave</span>
+                            <span class="text-xl">₹ (-)</span>
+                        </button>
+                        <button onclick="openKhatabookForm('taken')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 font-extrabold py-4 rounded-xl transition flex flex-col items-center justify-center shadow-sm">
+                            <span class="text-xs uppercase tracking-widest opacity-80 mb-1">You Got</span>
+                            <span class="text-xl">₹ (+)</span>
+                        </button>
+                    </div>
 
-                        <div class="md:col-span-2 md:col-start-1 md:row-start-1">
-                            <h3 class="font-bold text-slate-700 mb-3">Immutable Ledger History</h3>
-                            <div class="overflow-x-auto rounded-lg border border-slate-200">
-                                <table class="min-w-full text-left border-collapse whitespace-nowrap">
-                                    <thead>
-                                        <tr class="bg-slate-100 text-slate-600 text-xs md:text-sm uppercase">
-                                            <th class="p-3 border-b w-28">Date</th>
-                                            <th class="p-3 border-b w-24">Type</th>
-                                            <th class="p-3 border-b text-right">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tx-table-body" class="text-sm md:text-base"></tbody>
-                                </table>
-                            </div>
+                    <!-- Hidden Entry Form -->
+                    <div id="khatabook-form-container" class="admin-only hidden-view bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 relative">
+                        <button onclick="closeKhatabookForm()" class="absolute top-2 right-3 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+                        <h3 id="kb-form-title" class="text-sm font-bold text-navy mb-3 uppercase tracking-wider">New Entry</h3>
+                        <form onsubmit="addTransaction(event)" class="flex flex-col sm:flex-row gap-3">
+                            <input type="hidden" id="kb-tx-type" value="given">
+                            <input type="date" id="kb-tx-date" class="w-full sm:w-auto border border-slate-300 p-2 rounded-lg focus:border-blue-500 focus:outline-none font-bold text-slate-700" required />
+                            <input type="number" id="kb-tx-amount" min="1" placeholder="Enter Amount (₹)" class="w-full flex-1 border border-slate-300 p-2 rounded-lg focus:border-blue-500 focus:outline-none font-bold text-lg text-slate-800" required />
+                            <button type="submit" id="kb-submit-btn" class="w-full sm:w-auto bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">SAVE</button>
+                        </form>
+                    </div>
+
+                    <!-- Passbook Style Ledger -->
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Passbook History</h3>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
+                                        <th class="p-3 w-28 font-bold">Date</th>
+                                        <th class="p-3 text-right font-bold text-red-600">You Gave (-)</th>
+                                        <th class="p-3 text-right font-bold text-emerald-600">You Got (+)</th>
+                                        <th class="p-3 text-right font-bold bg-slate-100">Running Bal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tx-table-body" class="text-sm"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- ========================================== -->
-            <!-- VIEW 4: LEDGER HISTORY                     -->
+            <!-- VIEW 4: NET CASH DAYBOOK                   -->
             <!-- ========================================== -->
-            <div id="view-history" class="bg-white p-4 md:p-6 rounded-xl shadow-sm hidden-view">
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4 border-b border-slate-200 pb-4">
-                    <h2 class="text-xl md:text-2xl font-bold text-navy">Database Statements</h2>
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm font-semibold text-slate-600">Filter Date:</label>
-                        <input type="date" id="filter-history-date" onchange="renderHistory()" class="border-2 border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none">
-                        <button onclick="clearHistoryFilter()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm hover:bg-slate-300 font-medium">Clear</button>
+            <div id="view-netcash" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
+                    <h2 class="text-lg font-extrabold text-navy">Net Cash Daybook</h2>
+                </div>
+                <div class="space-y-4" id="netcash-list-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 5: LEDGER HISTORY                     -->
+            <!-- ========================================== -->
+            <div id="view-history" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-5 border-b border-slate-100 pb-4 gap-3">
+                    <h2 class="text-lg font-extrabold text-navy">Saved DB Statements</h2>
+                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                        <label class="text-xs font-bold text-slate-500 uppercase px-1">Filter:</label>
+                        <input type="date" id="filter-history-date" onchange="renderHistory()" class="bg-white border border-slate-200 p-1 rounded text-xs focus:border-blue-500 focus:outline-none">
+                        <button onclick="clearHistoryFilter()" class="bg-slate-200 text-slate-600 px-2 py-1 rounded text-xs hover:bg-slate-300 font-bold transition">Clear</button>
                     </div>
                 </div>
-                <div class="space-y-4" id="history-list-container"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="history-list-container"></div>
             </div>
 
         </div>
     </div>
 
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+
     <!-- ========================================== -->
     <!-- JAVASCRIPT LOGIC (Firebase v9 Modules)     -->
     <!-- ========================================== -->
     <script type="module">
-        // 1. IMPORT FIREBASE (Paste your exact config below)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        /* ========================================================= 
-           PASTE YOUR FIREBASE CONFIGURATION HERE 
-           ========================================================= */
+        // Admin Emails list for edit powers
+        const ADMIN_EMAILS = ['admin@firm.com', 'partner@firm.com'];
+
         const firebaseConfig = {
-    apiKey: "AIzaSyDbfZrtzjhE_MpYHpp8udsjHTlDWC4lXEo",
-    authDomain: "vlmf-d9880.firebaseapp.com",
-    projectId: "vlmf-d9880",
-    storageBucket: "vlmf-d9880.firebasestorage.app",
-    messagingSenderId: "503312994326",
-    appId: "1:503312994326:web:53fd067efcaa922e2da537"
-  };
+            apiKey: "AIzaSyDbfZrtzjhE_MpYHpp8udsjHTlDWC4lXEo",
+            authDomain: "vlmf-d9880.firebaseapp.com",
+            projectId: "vlmf-d9880",
+            storageBucket: "vlmf-d9880.firebasestorage.app",
+            messagingSenderId: "503312994326",
+            appId: "1:503312994326:web:53fd067efcaa922e2da537"
+        };
         
         let app, auth, db;
-        let useFirebase = false; // Flag to determine if Firebase is configured
+        let useFirebase = false; 
 
         try {
-            if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                useFirebase = true;
-            } else {
-                console.warn("Firebase not configured. Running in Local Mock Mode.");
-            }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            useFirebase = true;
         } catch(e) { console.error("Firebase init failed", e); }
 
-        // --- 2. State Variables ---
-        window.masterMode = 'online'; // 'online' | 'offline'
-        window.dashSubMode = 'daily'; // 'daily' | 'weekly'
+        // --- State Variables ---
+        window.masterMode = 'online'; 
+        window.dashSubMode = 'daily'; 
         window.percentages = { p1: 10, p2: 5, p3: 15, 'p-online': 10 };
+        window.currentUserRole = 'viewer';
 
-        // Mock DB Arrays if Firebase isn't set up yet
         window.customers = [];
         window.savedStatements = [];
         window.activeCustomerId = null;
         window.currentCalculations = {}; 
 
-        const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+        const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
         const getTodayString = () => new Date().toISOString().split('T')[0];
 
-        // --- 3. Authentication Flow ---
+        // --- Authentication & RBAC ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -380,14 +419,6 @@
                     errEl.innerText = "Invalid Login Credentials.";
                     errEl.classList.remove('hidden-view');
                 }
-            } else {
-                // Mock Login for testing
-                if(email === 'admin@firm.com' && pwd === 'password') {
-                    showApp();
-                } else {
-                    errEl.innerText = "Use admin@firm.com / password to test mock mode.";
-                    errEl.classList.remove('hidden-view');
-                }
             }
         });
 
@@ -399,6 +430,9 @@
         if(useFirebase) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
+                    window.currentUserRole = ADMIN_EMAILS.includes(user.email) ? 'admin' : 'viewer';
+                    document.body.setAttribute('data-role', window.currentUserRole);
+                    document.getElementById('role-indicator').innerText = window.currentUserRole;
                     fetchDataFromFirebase().then(showApp);
                 } else {
                     document.getElementById('auth-container').classList.remove('hidden-view');
@@ -411,16 +445,16 @@
             document.getElementById('auth-container').classList.add('hidden-view');
             document.getElementById('app-wrapper').classList.remove('hidden-view');
             
-            // If mock mode, insert dummy data
-            if(window.customers.length === 0) {
-                window.customers = [
-                    { id: "1", name: 'Arjun Mehta', frequency: 'daily', transactions: [{ id: 101, date: '2023-10-20', type: 'given', amount: 50000 }] },
-                    { id: "2", name: 'Priya Sharma', frequency: 'weekly', transactions: [{ id: 201, date: '2023-10-21', type: 'given', amount: 10000 }] },
-                    { id: "3", name: 'Ramesh Singh', frequency: 'offline', transactions: [{ id: 301, date: '2023-10-24', type: 'given', amount: 35000 }] }
-                ];
-            }
+            // Sync viewer UI states
+            document.getElementById('viewer-tb').innerText = formatINR(parseFloat(document.getElementById('input-tb').value) || 0);
+            document.getElementById('viewer-la').innerText = formatINR(parseFloat(document.getElementById('input-la').value) || 0);
             
+            const vEls = document.querySelectorAll('.viewer-only');
+            vEls.forEach(el => { if(window.currentUserRole === 'viewer') el.classList.remove('hidden'); });
+
+            document.getElementById('dash-as-of-date').value = getTodayString();
             document.getElementById('save-statement-date').value = getTodayString();
+            
             calculateAndRender();
             window.switchView('dashboard');
         }
@@ -435,7 +469,77 @@
             stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
         }
 
-        // --- 4. Percentages UI Toggle ---
+        // --- Khatabook UI Logic ---
+        window.openKhatabookForm = function(type) {
+            const container = document.getElementById('khatabook-form-container');
+            const title = document.getElementById('kb-form-title');
+            const typeInput = document.getElementById('kb-tx-type');
+            const submitBtn = document.getElementById('kb-submit-btn');
+            
+            document.getElementById('kb-tx-date').value = getTodayString();
+            document.getElementById('kb-tx-amount').value = '';
+
+            container.classList.remove('hidden-view');
+            typeInput.value = type;
+
+            if(type === 'given') {
+                container.className = 'admin-only bg-red-50 p-4 rounded-xl border border-red-200 mb-6 relative';
+                title.innerText = 'Recording: You Gave (-)';
+                title.className = 'text-sm font-extrabold text-red-800 mb-3 uppercase tracking-wider';
+                submitBtn.className = 'w-full sm:w-auto bg-red-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-red-700 transition shadow-sm';
+            } else {
+                container.className = 'admin-only bg-emerald-50 p-4 rounded-xl border border-emerald-200 mb-6 relative';
+                title.innerText = 'Recording: You Got (+)';
+                title.className = 'text-sm font-extrabold text-emerald-800 mb-3 uppercase tracking-wider';
+                submitBtn.className = 'w-full sm:w-auto bg-emerald-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm';
+            }
+            document.getElementById('kb-tx-amount').focus();
+        };
+
+        window.closeKhatabookForm = function() {
+            document.getElementById('khatabook-form-container').classList.add('hidden-view');
+        };
+
+        // --- Editing Customer Name ---
+        window.toggleEditName = function(isEditing) {
+            const nameEl = document.getElementById('prof-name');
+            const inputEl = document.getElementById('edit-name-input');
+            const editBtn = document.getElementById('edit-name-btn');
+            const saveBtn = document.getElementById('save-name-btn');
+
+            if(isEditing) {
+                inputEl.value = nameEl.innerText;
+                nameEl.classList.add('hidden-view');
+                editBtn.classList.add('hidden-view');
+                inputEl.classList.remove('hidden-view');
+                saveBtn.classList.remove('hidden-view');
+                inputEl.focus();
+            } else {
+                nameEl.classList.remove('hidden-view');
+                editBtn.classList.remove('hidden-view');
+                inputEl.classList.add('hidden-view');
+                saveBtn.classList.add('hidden-view');
+            }
+        };
+
+        window.saveName = async function() {
+            const newName = document.getElementById('edit-name-input').value.trim();
+            if(!newName) return;
+            
+            const customer = window.customers.find(c => c.id === window.activeCustomerId);
+            customer.name = newName;
+
+            if(useFirebase) {
+                const custRef = doc(db, "customers", customer.id);
+                await updateDoc(custRef, { name: newName });
+            }
+
+            document.getElementById('prof-name').innerText = newName;
+            window.toggleEditName(false);
+            window.renderCustomerList(); 
+        };
+
+        // --- Percentages UI Toggle ---
         window.toggleEdit = function(id) {
             document.getElementById(`display-${id}`).classList.add('hidden-view');
             document.getElementById(`edit-btn-${id}`).classList.add('hidden-view');
@@ -457,7 +561,7 @@
             calculateAndRender();
         };
 
-        // --- 5. Mode Toggles ---
+        // --- Mode Toggles ---
         window.setMasterMode = function(mode) {
             window.masterMode = mode;
             const btnOn = document.getElementById('master-online');
@@ -466,17 +570,18 @@
             const pOnlineContainer = document.getElementById('online-deduction-container');
 
             if(mode === 'online') {
-                btnOn.className = "px-6 py-1.5 rounded-md text-sm font-bold bg-blue-600 text-white shadow-sm transition";
-                btnOff.className = "px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition";
+                btnOn.className = "px-4 py-1 rounded-md text-xs font-bold bg-white text-navy shadow-sm transition";
+                btnOff.className = "px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition";
                 subTabs.classList.remove('hidden-view');
                 pOnlineContainer.classList.remove('hidden-view');
             } else {
-                btnOff.className = "px-6 py-1.5 rounded-md text-sm font-bold bg-amber-500 text-white shadow-sm transition";
-                btnOn.className = "px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition";
+                btnOff.className = "px-4 py-1 rounded-md text-xs font-bold bg-amber-500 text-white shadow-sm transition";
+                btnOn.className = "px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition";
                 subTabs.classList.add('hidden-view');
                 pOnlineContainer.classList.add('hidden-view');
             }
             calculateAndRender();
+            window.renderCustomerList(); 
         };
 
         window.setSubMode = function(submode) {
@@ -485,57 +590,64 @@
             const subWeekly = document.getElementById('subtab-weekly');
 
             if(submode === 'daily') {
-                subDaily.className = "px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition";
-                subWeekly.className = "px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition";
+                subDaily.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition";
+                subWeekly.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition";
             } else {
-                subWeekly.className = "px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition";
-                subDaily.className = "px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition";
+                subWeekly.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition";
+                subDaily.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition";
             }
             calculateAndRender();
         };
 
-        // --- 6. Core Math Engine ---
+        // --- Core Math Engine ---
         window.calculateAndRender = function() {
+            const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
             let activeLedgerType = window.masterMode === 'offline' ? 'offline' : window.dashSubMode;
             let gt = 0;
 
             const badge = document.getElementById('active-ledger-badge');
+            const colorBar = document.getElementById('overview-color-bar');
+
             if(activeLedgerType === 'offline') {
                 badge.innerText = 'Offline Ledger';
-                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-100 text-amber-700';
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-700 border border-amber-200';
+                colorBar.style.backgroundColor = '#f59e0b';
             } else if (activeLedgerType === 'daily') {
-                badge.innerText = 'Online - Daily Ledger';
-                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700';
+                badge.innerText = 'Online Daily';
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200';
+                colorBar.style.backgroundColor = '#3b82f6';
             } else {
-                badge.innerText = 'Online - Weekly Ledger';
-                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700';
+                badge.innerText = 'Online Weekly';
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-700 border border-purple-200';
+                colorBar.style.backgroundColor = '#a855f7';
             }
 
-            // Customer Math
+            // Customer Math (Filtered by As Of Date)
             window.customers.forEach(c => {
-                let given = c.transactions.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0);
-                let taken = c.transactions.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0);
+                const validTxs = c.transactions ? c.transactions.filter(t => t.date <= asOfDate) : [];
+                let given = validTxs.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0);
+                let taken = validTxs.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0);
                 let rawBalance = given - taken;
                 c.rawBalance = rawBalance;
 
                 if (c.frequency === activeLedgerType) {
                     if(window.masterMode === 'online') {
-                        // NEW REQUIREMENT: Online deducts a % from the balance before GT
                         let deduct = rawBalance * (window.percentages['p-online'] / 100);
                         gt += (rawBalance - deduct);
                     } else {
-                        // Offline keeps original logic
                         gt += rawBalance;
                     }
                 }
             });
 
-            // Rest of formulas
             const p1 = window.percentages['p1'];
             const p2 = window.percentages['p2'];
             const p3 = window.percentages['p3'];
             const tbVal = parseFloat(document.getElementById('input-tb').value) || 0;
             const laVal = parseFloat(document.getElementById('input-la').value) || 0;
+
+            document.getElementById('viewer-tb').innerText = formatINR(tbVal);
+            document.getElementById('viewer-la').innerText = formatINR(laVal);
 
             const gtAdjustment = -1 * (gt * (p1 / 100));
             const tbAmount = -1 * (tbVal * (p2 / 100));
@@ -546,7 +658,6 @@
 
             window.currentCalculations = { ledgerType: activeLedgerType, gt, gtAdjustment, tbAmount, multiplierAmount, usedLineAmount, finalGrandTotal };
 
-            // Render Updates
             document.getElementById('dash-gt').innerText = formatINR(gt);
             document.getElementById('dash-gt-adj').innerText = formatINR(gtAdjustment);
             document.getElementById('dash-tb-amt').innerText = formatINR(tbAmount);
@@ -560,20 +671,20 @@
             
             const finalTotalEl = document.getElementById('dash-final-total');
             finalTotalEl.innerText = formatINR(finalGrandTotal);
-            finalTotalEl.className = `text-3xl md:text-5xl font-bold ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            finalTotalEl.className = `text-3xl md:text-4xl font-extrabold tracking-tight ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
 
-            renderCustomerList();
-            if (window.activeCustomerId) renderCustomerProfile();
+            if (window.activeCustomerId) window.renderCustomerProfile();
         };
 
         // --- Navigation ---
         window.switchView = function(viewName) {
-            ['dashboard', 'list', 'profile', 'history'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden-view');
+            ['dashboard', 'list', 'profile', 'history', 'netcash'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if(el) el.classList.add('hidden-view');
             });
             document.getElementById(`view-${viewName}`).classList.remove('hidden-view');
             
-            ['dash', 'list', 'history'].forEach(id => {
+            ['dash', 'list', 'history', 'netcash'].forEach(id => {
                 const btn = document.getElementById(`nav-${id}`);
                 if(btn) {
                     if(id === viewName) {
@@ -585,41 +696,78 @@
             });
 
             if(viewName === 'history') window.renderHistory();
-            else calculateAndRender();
+            else if(viewName === 'list') window.renderCustomerList();
+            else if(viewName === 'netcash') window.renderNetCash();
+            else window.calculateAndRender();
+            
+            window.scrollTo(0,0);
         };
 
         window.openProfile = function(id) {
             window.activeCustomerId = id;
-            document.getElementById('new-tx-date').value = getTodayString();
+            window.toggleEditName(false); 
+            window.closeKhatabookForm();
             window.switchView('profile');
         };
 
-        // --- Rendering ---
-        window.renderCustomerList = function() {
-            const tbody = document.getElementById('customer-table-body');
-            document.getElementById('dir-title').innerText = window.masterMode === 'online' ? 'Online Directory' : 'Offline Directory';
-            tbody.innerHTML = '';
-
+        // --- Rendering Lists ---
+        function createTableHTML(title, colorClass, dataArray) {
+            let rows = '';
             let hasRows = false;
-            window.customers.forEach(c => {
-                // Filter view based on master mode
-                if (window.masterMode === 'online' && c.frequency === 'offline') return;
-                if (window.masterMode === 'offline' && c.frequency !== 'offline') return;
-
+            
+            dataArray.forEach(c => {
                 hasRows = true;
-                const colorClass = c.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
-                const freqBadge = c.frequency === 'offline' ? 'bg-amber-100 text-amber-700' : (c.frequency === 'daily' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
-
-                tbody.innerHTML += `
+                const balClass = c.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
+                rows += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer" onclick="openProfile('${c.id}')">
-                        <td class="p-3 md:p-4 font-semibold text-slate-800">${c.name}</td>
-                        <td class="p-3 md:p-4"><span class="px-2 py-1 text-xs font-bold uppercase rounded ${freqBadge}">${c.frequency}</span></td>
-                        <td class="p-3 md:p-4 font-bold text-right ${colorClass}">${formatINR(c.rawBalance)}</td>
+                        <td class="p-3 font-bold text-slate-800">${c.name}</td>
+                        <td class="p-3 font-extrabold text-right ${balClass}">${formatINR(c.rawBalance)}</td>
                     </tr>
                 `;
             });
 
-            if (!hasRows) tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No customers in this segment.</td></tr>';
+            if(!hasRows) rows = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic text-xs">No records found.</td></tr>`;
+
+            return `
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="${colorClass} px-4 py-2 border-b border-slate-200">
+                        <h3 class="font-bold text-xs uppercase tracking-wider">${title}</h3>
+                    </div>
+                    <div class="overflow-x-auto bg-white">
+                        <table class="min-w-full text-left border-collapse whitespace-nowrap text-sm">
+                            <tbody class="divide-y divide-slate-100">${rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.renderCustomerList = function() {
+            const grid = document.getElementById('directory-grid');
+            
+            // Note: Since list doesn't depend on "As Of" date, we show raw real-time balances here.
+            // Recalculate raw balances real quick without date filter for directory
+            window.customers.forEach(c => {
+                let given = c.transactions ? c.transactions.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0) : 0;
+                let taken = c.transactions ? c.transactions.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0) : 0;
+                c.dirBalance = given - taken;
+            });
+
+            const offlineCust = window.customers.filter(c => c.frequency === 'offline').map(c => ({...c, rawBalance: c.dirBalance}));
+            const dailyCust = window.customers.filter(c => c.frequency === 'daily').map(c => ({...c, rawBalance: c.dirBalance}));
+            const weeklyCust = window.customers.filter(c => c.frequency === 'weekly').map(c => ({...c, rawBalance: c.dirBalance}));
+
+            if(window.masterMode === 'offline') {
+                document.getElementById('dir-title').innerText = 'Offline Directory';
+                grid.className = "grid grid-cols-1 gap-6";
+                grid.innerHTML = createTableHTML('Offline Accounts', 'bg-amber-50 text-amber-800', offlineCust);
+            } else {
+                document.getElementById('dir-title').innerText = 'Online Directory';
+                grid.className = "grid grid-cols-1 md:grid-cols-2 gap-6";
+                grid.innerHTML = 
+                    createTableHTML('Daily Accounts', 'bg-blue-50 text-blue-800', dailyCust) +
+                    createTableHTML('Weekly Accounts', 'bg-purple-50 text-purple-800', weeklyCust);
+            }
         };
 
         window.renderCustomerProfile = function() {
@@ -629,29 +777,106 @@
             document.getElementById('prof-name').innerText = customer.name;
             const freqEl = document.getElementById('prof-freq');
             freqEl.innerText = customer.frequency;
-            freqEl.className = `text-xs font-bold uppercase tracking-wider px-2 py-1 rounded mt-1 inline-block ${customer.frequency === 'offline' ? 'text-amber-700 bg-amber-100' : 'text-blue-700 bg-blue-100'}`;
+            
+            let fClass = 'bg-amber-100 text-amber-700';
+            if (customer.frequency === 'daily') fClass = 'bg-blue-100 text-blue-700';
+            if (customer.frequency === 'weekly') fClass = 'bg-purple-100 text-purple-700';
+            freqEl.className = `text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block ${fClass}`;
 
-            document.getElementById('prof-balance').innerText = formatINR(customer.rawBalance);
-            document.getElementById('prof-balance').className = `text-2xl font-bold ${customer.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+            // Calculate current total balance for profile header
+            let totalGiven = customer.transactions ? customer.transactions.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0) : 0;
+            let totalTaken = customer.transactions ? customer.transactions.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0) : 0;
+            let currentBal = totalGiven - totalTaken;
+
+            document.getElementById('prof-balance').innerText = formatINR(currentBal);
+            document.getElementById('prof-balance').className = `text-2xl font-extrabold ${currentBal >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
 
             const tbody = document.getElementById('tx-table-body');
             tbody.innerHTML = '';
             
             if (!customer.transactions || customer.transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500 italic">No transactions recorded.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic text-xs">No passbook records.</td></tr>`;
             } else {
-                const sortedTxs = [...customer.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Sort Oldest to Newest to calculate running balance accurately
+                let sortedTxs = [...customer.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+                let runningBal = 0;
+                
+                // Add running balance to each
+                sortedTxs = sortedTxs.map(t => {
+                    runningBal += (t.type === 'given' ? t.amount : -t.amount);
+                    return { ...t, rBal: runningBal };
+                });
+
+                // Reverse to show newest at top
+                sortedTxs.reverse();
+
                 sortedTxs.forEach(t => {
-                    const bgClass = t.type === 'given' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+                    const givenAmt = t.type === 'given' ? formatINR(t.amount) : '-';
+                    const takenAmt = t.type === 'taken' ? formatINR(t.amount) : '-';
+                    const rBalClass = t.rBal >= 0 ? 'text-emerald-600' : 'text-red-600';
+                    
                     tbody.innerHTML += `
-                        <tr class="border-b border-slate-100">
-                            <td class="p-3 text-sm text-slate-600">${t.date}</td>
-                            <td class="p-3"><span class="px-2 py-1 rounded border text-xs font-bold uppercase ${bgClass}">${t.type}</span></td>
-                            <td class="p-3 text-right font-bold text-slate-700">${formatINR(t.amount)}</td>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                            <td class="p-3 text-xs font-bold text-slate-500">${t.date}</td>
+                            <td class="p-3 text-right font-bold text-red-500">${givenAmt}</td>
+                            <td class="p-3 text-right font-bold text-emerald-500">${takenAmt}</td>
+                            <td class="p-3 text-right font-extrabold bg-slate-50 border-l border-slate-100 ${rBalClass}">${formatINR(t.rBal)}</td>
                         </tr>
                     `;
                 });
             }
+        };
+
+        window.renderNetCash = function() {
+            const container = document.getElementById('netcash-list-container');
+            container.innerHTML = '';
+
+            let dailyCash = {};
+
+            window.customers.forEach(c => {
+               if(c.transactions) {
+                   c.transactions.forEach(t => {
+                       if(!dailyCash[t.date]) dailyCash[t.date] = { given: 0, taken: 0 };
+                       if(t.type === 'given') dailyCash[t.date].given += t.amount;
+                       if(t.type === 'taken') dailyCash[t.date].taken += t.amount;
+                   });
+               }
+            });
+
+            const sortedDates = Object.keys(dailyCash).sort((a,b) => new Date(b) - new Date(a));
+
+            if (sortedDates.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl italic text-sm">No transaction data available.</div>`;
+                return;
+            }
+
+            sortedDates.forEach(date => {
+                const data = dailyCash[date];
+                const netCash = data.taken - data.given; // Cash Flow: Got - Gave
+                const netClass = netCash >= 0 ? 'text-emerald-600' : 'text-red-600';
+
+                container.innerHTML += `
+                    <div class="border border-slate-200 rounded-2xl p-4 shadow-sm bg-white hover:shadow-md transition">
+                        <div class="border-b border-slate-100 pb-2 mb-3">
+                            <h3 class="text-sm font-extrabold text-navy">${date}</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div class="bg-red-50 p-2 rounded-lg border border-red-100">
+                                <p class="text-[10px] font-bold text-red-500 uppercase">Total Cash Out (Gave)</p>
+                                <p class="text-lg font-bold text-red-700">${formatINR(data.given)}</p>
+                            </div>
+                            <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                                <p class="text-[10px] font-bold text-emerald-600 uppercase">Total Cash In (Got)</p>
+                                <p class="text-lg font-bold text-emerald-800">${formatINR(data.taken)}</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Net Cash Flow</p>
+                            <p class="text-xl font-extrabold ${netClass}">${formatINR(netCash)}</p>
+                        </div>
+                    </div>
+                `;
+            });
         };
 
         window.renderHistory = function() {
@@ -663,21 +888,24 @@
             if (filterDate) displayRecords = displayRecords.filter(r => r.date === filterDate);
 
             if (displayRecords.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-50 italic">No DB statements found.</div>`;
+                container.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl italic text-sm">No DB statements found.</div>`;
                 return;
             }
 
             displayRecords.forEach(record => {
-                const badgeClass = record.ledgerType === 'offline' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700';
+                let bClass = 'bg-amber-100 text-amber-700';
+                if(record.ledgerType === 'daily') bClass = 'bg-blue-100 text-blue-700';
+                if(record.ledgerType === 'weekly') bClass = 'bg-purple-100 text-purple-700';
+
                 container.innerHTML += `
-                    <div class="border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm bg-slate-50">
-                        <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
-                            <h3 class="text-lg font-bold text-navy">${record.date}</h3>
-                            <span class="px-2 py-1 rounded text-xs font-bold uppercase border ${badgeClass}">${record.ledgerType} Ledger</span>
+                    <div class="border border-slate-200 rounded-2xl p-5 shadow-sm bg-slate-50 hover:shadow-md transition">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                            <h3 class="text-sm font-extrabold text-navy">${record.date}</h3>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-white/50 ${bClass}">${record.ledgerType}</span>
                         </div>
-                        <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
-                            <p class="text-sm font-bold text-slate-600 uppercase">Final Total</p>
-                            <p class="text-2xl font-bold ${record.finalGrandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatINR(record.finalGrandTotal)}</p>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Final Total</p>
+                            <p class="text-xl font-extrabold ${record.finalGrandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatINR(record.finalGrandTotal)}</p>
                         </div>
                     </div>
                 `;
@@ -701,14 +929,14 @@
 
             window.customers.push(newCust);
             document.getElementById('new-cust-name').value = '';
-            calculateAndRender();
+            window.renderCustomerList();
         };
 
         window.addTransaction = async function(e) {
             e.preventDefault();
-            const date = document.getElementById('new-tx-date').value;
-            const type = document.getElementById('new-tx-type').value;
-            const amount = parseFloat(document.getElementById('new-tx-amount').value);
+            const date = document.getElementById('kb-tx-date').value;
+            const type = document.getElementById('kb-tx-type').value;
+            const amount = parseFloat(document.getElementById('kb-tx-amount').value);
 
             const tx = { id: Date.now(), date, type, amount };
             const customer = window.customers.find(c => c.id === window.activeCustomerId);
@@ -718,8 +946,10 @@
                 await updateDoc(custRef, { transactions: arrayUnion(tx) });
             }
             
+            if(!customer.transactions) customer.transactions = [];
             customer.transactions.push(tx);
-            document.getElementById('new-tx-amount').value = '';
+            
+            window.closeKhatabookForm();
             calculateAndRender();
         };
 
@@ -735,7 +965,7 @@
             }
 
             window.savedStatements.push(payload);
-            alert(`DB Statement Locked for ${date}!`);
+            alert(`Database Statement Locked for ${date}!`);
         };
 
         window.clearHistoryFilter = function() {
