@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance Ledger App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden-view { display: none !important; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 16px; }
+        .text-navy { color: #0f172a; }
+        .bg-navy { background-color: #0f172a; }
+        .text-emerald { color: #059669; }
+        .bg-emerald { background-color: #059669; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans pb-10 min-h-screen flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- LOGIN SCREEN                               -->
+    <!-- ========================================== -->
+    <div id="auth-container" class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-blue-600">
+            <h2 class="text-2xl font-bold text-navy mb-2 text-center">FIRM Ledger</h2>
+            <p class="text-sm text-gray-500 text-center mb-6">Enter your credentials to access the database.</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Email ID</label>
+                    <input type="email" id="login-email" class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-600 focus:outline-none" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full border-2 border-gray-200 p-3 rounded-lg focus:border-blue-600 focus:outline-none" required />
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">Sign In</button>
+                <p id="login-error" class="text-red-500 text-sm text-center font-semibold mt-2 hidden-view"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MAIN APPLICATION (Hidden until Login)      -->
+    <!-- ========================================== -->
+    <div id="app-wrapper" class="hidden-view w-full">
+        
+        <!-- App Navigation Bar -->
+        <nav class="bg-navy text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center h-auto md:h-16 py-2 md:py-0 gap-3">
+                <h1 class="font-bold text-xl tracking-wide">FIRM<span class="text-blue-400">Ledger</span></h1>
+                
+                <!-- Master Mode Switcher -->
+                <div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+                    <button onclick="setMasterMode('online')" id="master-online" class="px-6 py-1.5 rounded-md text-sm font-bold bg-blue-600 text-white shadow-sm transition">ONLINE</button>
+                    <button onclick="setMasterMode('offline')" id="master-offline" class="px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition">OFFLINE</button>
+                </div>
+
+                <div class="flex space-x-1">
+                    <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-2 rounded-md text-sm font-medium bg-slate-700 transition">Dashboard</button>
+                    <button onclick="switchView('list')" id="nav-list" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700 transition">Customers</button>
+                    <button onclick="switchView('history')" id="nav-history" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-700 transition">History</button>
+                    <button onclick="logout()" class="px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:bg-slate-700 transition ml-4">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-6xl mx-auto p-4 mt-2" id="app-container">
+
+            <!-- ========================================== -->
+            <!-- VIEW 1: DASHBOARD                          -->
+            <!-- ========================================== -->
+            <div id="view-dashboard" class="space-y-4 md:space-y-6">
+                
+                <!-- Online Sub-Toggle (Daily/Weekly) -->
+                <div id="online-subtabs" class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-center gap-2">
+                    <button onclick="setSubMode('daily')" id="subtab-daily" class="px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition">Daily Accounts</button>
+                    <button onclick="setSubMode('weekly')" id="subtab-weekly" class="px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition">Weekly Accounts</button>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4" id="overview-card-border" style="border-color: #3b82f6;">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-md font-semibold text-gray-700">Customer Overview</h3>
+                        <span id="active-ledger-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700">Online Daily Ledger</span>
+                    </div>
+                    <div class="mt-3">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Segment Grand Total (GT)</p>
+                        <p class="text-4xl md:text-5xl font-bold text-navy tracking-tight" id="dash-gt">₹0.00</p>
+                    </div>
+
+                    <!-- ONLINE ONLY: Customer Deduction % -->
+                    <div id="online-deduction-container" class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                        <div>
+                            <p class="text-sm font-bold text-blue-800">Online Customer Deduction</p>
+                            <p class="text-xs text-blue-600">Deducted directly from raw balances</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="display-p-online" class="text-xl font-bold text-blue-800">10%</span>
+                            <input type="number" id="input-p-online" value="10" class="hidden-view w-20 border border-blue-300 p-1 rounded text-center font-bold" />
+                            <button id="edit-btn-p-online" onclick="toggleEdit('p-online')" class="text-gray-500 hover:text-blue-600 bg-white p-1.5 rounded shadow-sm border">✏️</button>
+                            <button id="save-btn-p-online" onclick="saveEdit('p-online')" class="hidden-view text-green-600 hover:text-green-800 bg-white p-1.5 rounded shadow-sm border">✅</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    <!-- GT Adjustment -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-purple-600 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-md font-semibold text-gray-700">GT Adjustment</h3>
+                                <div class="flex items-center gap-1">
+                                    <span id="display-p1" class="font-bold text-purple-700 bg-purple-100 px-2 rounded">10%</span>
+                                    <input type="number" id="input-p1" value="10" class="hidden-view w-16 border border-purple-300 p-0.5 rounded text-center text-sm" />
+                                    <button id="edit-btn-p1" onclick="toggleEdit('p1')" class="text-xs p-1">✏️</button>
+                                    <button id="save-btn-p1" onclick="saveEdit('p1')" class="hidden-view text-xs p-1">✅</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded-lg border border-purple-100 mt-auto">
+                            <p class="text-xs text-purple-700 font-semibold">Adjustment Amount</p>
+                            <p class="font-bold text-purple-800 text-lg" id="dash-gt-adj">₹0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Total Balance -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-emerald-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-md font-semibold text-gray-700">Total Balance (TB)</h3>
+                                <div class="flex items-center gap-1">
+                                    <span id="display-p2" class="font-bold text-emerald-700 bg-emerald-100 px-2 rounded">5%</span>
+                                    <input type="number" id="input-p2" value="5" class="hidden-view w-16 border border-emerald-300 p-0.5 rounded text-center text-sm" />
+                                    <button id="edit-btn-p2" onclick="toggleEdit('p2')" class="text-xs p-1">✏️</button>
+                                    <button id="save-btn-p2" onclick="saveEdit('p2')" class="hidden-view text-xs p-1">✅</button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs text-gray-500 uppercase font-bold mb-1">TB Amount Input</label>
+                                <input type="number" id="input-tb" value="25000" oninput="calculateAndRender()" class="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-emerald-500 focus:outline-none transition" />
+                            </div>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex justify-between items-center mt-auto">
+                            <div>
+                                <p class="text-xs text-emerald-700 font-semibold">TB Calc Amount</p>
+                                <p class="font-bold text-emerald-800" id="dash-tb-amt">₹0.00</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-emerald-700 font-semibold">Rent</p>
+                                <p class="font-bold text-emerald-800" id="dash-tb-mult">₹0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Amount -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-orange-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-md font-semibold text-gray-700">Line Amount</h3>
+                                <div class="flex items-center gap-1">
+                                    <span id="display-p3" class="font-bold text-orange-700 bg-orange-100 px-2 rounded">15%</span>
+                                    <input type="number" id="input-p3" value="15" class="hidden-view w-16 border border-orange-300 p-0.5 rounded text-center text-sm" />
+                                    <button id="edit-btn-p3" onclick="toggleEdit('p3')" class="text-xs p-1">✏️</button>
+                                    <button id="save-btn-p3" onclick="saveEdit('p3')" class="hidden-view text-xs p-1">✅</button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs text-gray-500 uppercase font-bold mb-1">LA Amount Input</label>
+                                <input type="number" id="input-la" value="-15000" oninput="calculateAndRender()" class="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-orange-500 focus:outline-none transition" />
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 p-3 rounded-lg border border-orange-100 mt-auto">
+                            <p class="text-xs text-orange-600 font-semibold">Used Line Amount</p>
+                            <p class="font-bold text-orange-700 text-lg" id="dash-used-la">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Final Summary & Save Section -->
+                <div class="bg-navy text-white p-5 md:p-6 rounded-xl shadow-lg mt-6">
+                    <h3 class="text-md font-semibold text-gray-300 uppercase tracking-wide mb-3">Final Settlement</h3>
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-t border-slate-700 pt-4 gap-4">
+                        <div class="text-sm space-y-2 text-gray-400 w-full lg:w-auto font-mono">
+                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ GT Adjustment:</span> <span id="sum-gt-adj">₹0.00</span></div>
+                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ TB Percentage:</span> <span id="sum-tb-amt">₹0.00</span></div>
+                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ TB Multiplier:</span> <span id="sum-tb-mult">₹0.00</span></div>
+                            <div class="flex justify-between lg:justify-start lg:gap-4"><span class="w-40">+ Used Line Amt:</span> <span id="sum-la">₹0.00</span></div>
+                        </div>
+                        <div class="text-left lg:text-right w-full lg:w-auto bg-slate-800 p-4 rounded-lg border border-slate-600 shadow-inner">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Final Grand Total</p>
+                            <p id="dash-final-total" class="text-3xl md:text-5xl font-bold">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 border-t border-slate-700 pt-5 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <div class="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
+                            <label class="text-sm text-gray-400 whitespace-nowrap">Save snapshot to Database as:</label>
+                            <input type="date" id="save-statement-date" class="w-full sm:w-auto border-2 border-slate-600 bg-slate-800 text-white p-2 rounded-lg focus:outline-none focus:border-blue-400" required />
+                        </div>
+                        <button onclick="saveStatement()" class="w-full sm:w-auto bg-emerald text-white font-bold px-6 py-2 rounded-lg hover:bg-emerald-600 active:bg-green-700 transition">Save Ledger to Firebase</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 2: CUSTOMER LIST                      -->
+            <!-- ========================================== -->
+            <div id="view-list" class="bg-white p-4 md:p-6 rounded-xl shadow-sm hidden-view">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-navy" id="dir-title">Online Directory</h2>
+                </div>
+                
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                    <form onsubmit="addCustomer(event)" class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="new-cust-name" placeholder="Enter Customer Name" class="flex-1 border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none" required />
+                        <select id="new-cust-freq" class="border-2 border-gray-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white font-medium">
+                            <option value="daily">Daily Account (Online)</option>
+                            <option value="weekly">Weekly Account (Online)</option>
+                            <option value="offline">Offline Account</option>
+                        </select>
+                        <button type="submit" class="bg-navy text-white font-semibold px-6 py-3 rounded-lg hover:bg-slate-800 transition w-full sm:w-auto">Add to Database</button>
+                    </form>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border">
+                    <table class="min-w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs md:text-sm uppercase tracking-wider">
+                                <th class="p-4 border-b">Customer Name</th>
+                                <th class="p-4 border-b">Category</th>
+                                <th class="p-4 border-b text-right">Raw Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer-table-body" class="text-sm md:text-base"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 3: CUSTOMER PROFILE                   -->
+            <!-- ========================================== -->
+            <div id="view-profile" class="hidden-view">
+                <button onclick="switchView('list')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-300 transition mb-4 flex items-center w-max">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Directory
+                </button>
+
+                <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 pb-4 mb-6 gap-2">
+                        <div>
+                            <h2 id="prof-name" class="text-xl md:text-2xl font-bold text-navy truncate">Customer Name</h2>
+                            <span id="prof-freq" class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded mt-1 inline-block">Daily</span>
+                        </div>
+                        <div class="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                            <p class="text-xs text-slate-500 uppercase tracking-wide">Raw Balance</p>
+                            <p id="prof-balance" class="text-2xl font-bold">₹0.00</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-start-3 md:row-start-1">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h3 class="font-bold text-navy mb-3">Add Entry to DB</h3>
+                                <p class="text-xs text-red-500 mb-3 font-semibold">*Entries cannot be edited once saved.</p>
+                                <form onsubmit="addTransaction(event)" class="space-y-3">
+                                    <div>
+                                        <input type="date" id="new-tx-date" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white" required />
+                                    </div>
+                                    <div>
+                                        <select id="new-tx-type" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white font-medium">
+                                            <option value="given">GIVEN (+ Profit)</option>
+                                            <option value="taken">TAKEN (- Loss)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <input type="number" id="new-tx-amount" min="0" placeholder="Amount (₹)" class="w-full border-2 border-white p-3 rounded-lg focus:border-blue-500 focus:outline-none bg-white" required />
+                                    </div>
+                                    <button type="submit" class="w-full bg-blue-600 text-white font-bold px-4 py-3 rounded-lg hover:bg-blue-700 transition shadow-sm mt-2">Lock In Transaction</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 md:col-start-1 md:row-start-1">
+                            <h3 class="font-bold text-slate-700 mb-3">Immutable Ledger History</h3>
+                            <div class="overflow-x-auto rounded-lg border border-slate-200">
+                                <table class="min-w-full text-left border-collapse whitespace-nowrap">
+                                    <thead>
+                                        <tr class="bg-slate-100 text-slate-600 text-xs md:text-sm uppercase">
+                                            <th class="p-3 border-b w-28">Date</th>
+                                            <th class="p-3 border-b w-24">Type</th>
+                                            <th class="p-3 border-b text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tx-table-body" class="text-sm md:text-base"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 4: LEDGER HISTORY                     -->
+            <!-- ========================================== -->
+            <div id="view-history" class="bg-white p-4 md:p-6 rounded-xl shadow-sm hidden-view">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4 border-b border-slate-200 pb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-navy">Database Statements</h2>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-semibold text-slate-600">Filter Date:</label>
+                        <input type="date" id="filter-history-date" onchange="renderHistory()" class="border-2 border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none">
+                        <button onclick="clearHistoryFilter()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-sm hover:bg-slate-300 font-medium">Clear</button>
+                    </div>
+                </div>
+                <div class="space-y-4" id="history-list-container"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC (Firebase v9 Modules)     -->
+    <!-- ========================================== -->
+    <script type="module">
+        // 1. IMPORT FIREBASE (Paste your exact config below)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        /* ========================================================= 
+           PASTE YOUR FIREBASE CONFIGURATION HERE 
+           ========================================================= */
+        const firebaseConfig = {
+    apiKey: "AIzaSyDbfZrtzjhE_MpYHpp8udsjHTlDWC4lXEo",
+    authDomain: "vlmf-d9880.firebaseapp.com",
+    projectId: "vlmf-d9880",
+    storageBucket: "vlmf-d9880.firebasestorage.app",
+    messagingSenderId: "503312994326",
+    appId: "1:503312994326:web:53fd067efcaa922e2da537"
+  };
+        
+        let app, auth, db;
+        let useFirebase = false; // Flag to determine if Firebase is configured
+
+        try {
+            if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                useFirebase = true;
+            } else {
+                console.warn("Firebase not configured. Running in Local Mock Mode.");
+            }
+        } catch(e) { console.error("Firebase init failed", e); }
+
+        // --- 2. State Variables ---
+        window.masterMode = 'online'; // 'online' | 'offline'
+        window.dashSubMode = 'daily'; // 'daily' | 'weekly'
+        window.percentages = { p1: 10, p2: 5, p3: 15, 'p-online': 10 };
+
+        // Mock DB Arrays if Firebase isn't set up yet
+        window.customers = [];
+        window.savedStatements = [];
+        window.activeCustomerId = null;
+        window.currentCalculations = {}; 
+
+        const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+        const getTodayString = () => new Date().toISOString().split('T')[0];
+
+        // --- 3. Authentication Flow ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pwd = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+            
+            if(useFirebase) {
+                try {
+                    await signInWithEmailAndPassword(auth, email, pwd);
+                    errEl.classList.add('hidden-view');
+                } catch (error) {
+                    errEl.innerText = "Invalid Login Credentials.";
+                    errEl.classList.remove('hidden-view');
+                }
+            } else {
+                // Mock Login for testing
+                if(email === 'admin@firm.com' && pwd === 'password') {
+                    showApp();
+                } else {
+                    errEl.innerText = "Use admin@firm.com / password to test mock mode.";
+                    errEl.classList.remove('hidden-view');
+                }
+            }
+        });
+
+        window.logout = function() {
+            if(useFirebase) signOut(auth);
+            else location.reload();
+        };
+
+        if(useFirebase) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    fetchDataFromFirebase().then(showApp);
+                } else {
+                    document.getElementById('auth-container').classList.remove('hidden-view');
+                    document.getElementById('app-wrapper').classList.add('hidden-view');
+                }
+            });
+        }
+
+        function showApp() {
+            document.getElementById('auth-container').classList.add('hidden-view');
+            document.getElementById('app-wrapper').classList.remove('hidden-view');
+            
+            // If mock mode, insert dummy data
+            if(window.customers.length === 0) {
+                window.customers = [
+                    { id: "1", name: 'Arjun Mehta', frequency: 'daily', transactions: [{ id: 101, date: '2023-10-20', type: 'given', amount: 50000 }] },
+                    { id: "2", name: 'Priya Sharma', frequency: 'weekly', transactions: [{ id: 201, date: '2023-10-21', type: 'given', amount: 10000 }] },
+                    { id: "3", name: 'Ramesh Singh', frequency: 'offline', transactions: [{ id: 301, date: '2023-10-24', type: 'given', amount: 35000 }] }
+                ];
+            }
+            
+            document.getElementById('save-statement-date').value = getTodayString();
+            calculateAndRender();
+            window.switchView('dashboard');
+        }
+
+        async function fetchDataFromFirebase() {
+            window.customers = [];
+            window.savedStatements = [];
+            const custSnap = await getDocs(collection(db, "customers"));
+            custSnap.forEach((doc) => { window.customers.push({ id: doc.id, ...doc.data() }); });
+            
+            const stateSnap = await getDocs(collection(db, "statements"));
+            stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
+        }
+
+        // --- 4. Percentages UI Toggle ---
+        window.toggleEdit = function(id) {
+            document.getElementById(`display-${id}`).classList.add('hidden-view');
+            document.getElementById(`edit-btn-${id}`).classList.add('hidden-view');
+            document.getElementById(`input-${id}`).classList.remove('hidden-view');
+            document.getElementById(`save-btn-${id}`).classList.remove('hidden-view');
+        };
+
+        window.saveEdit = function(id) {
+            const val = parseFloat(document.getElementById(`input-${id}`).value) || 0;
+            window.percentages[id] = val;
+            
+            document.getElementById(`display-${id}`).innerText = val + '%';
+            
+            document.getElementById(`display-${id}`).classList.remove('hidden-view');
+            document.getElementById(`edit-btn-${id}`).classList.remove('hidden-view');
+            document.getElementById(`input-${id}`).classList.add('hidden-view');
+            document.getElementById(`save-btn-${id}`).classList.add('hidden-view');
+            
+            calculateAndRender();
+        };
+
+        // --- 5. Mode Toggles ---
+        window.setMasterMode = function(mode) {
+            window.masterMode = mode;
+            const btnOn = document.getElementById('master-online');
+            const btnOff = document.getElementById('master-offline');
+            const subTabs = document.getElementById('online-subtabs');
+            const pOnlineContainer = document.getElementById('online-deduction-container');
+
+            if(mode === 'online') {
+                btnOn.className = "px-6 py-1.5 rounded-md text-sm font-bold bg-blue-600 text-white shadow-sm transition";
+                btnOff.className = "px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition";
+                subTabs.classList.remove('hidden-view');
+                pOnlineContainer.classList.remove('hidden-view');
+            } else {
+                btnOff.className = "px-6 py-1.5 rounded-md text-sm font-bold bg-amber-500 text-white shadow-sm transition";
+                btnOn.className = "px-6 py-1.5 rounded-md text-sm font-bold text-gray-300 hover:text-white transition";
+                subTabs.classList.add('hidden-view');
+                pOnlineContainer.classList.add('hidden-view');
+            }
+            calculateAndRender();
+        };
+
+        window.setSubMode = function(submode) {
+            window.dashSubMode = submode;
+            const subDaily = document.getElementById('subtab-daily');
+            const subWeekly = document.getElementById('subtab-weekly');
+
+            if(submode === 'daily') {
+                subDaily.className = "px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition";
+                subWeekly.className = "px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition";
+            } else {
+                subWeekly.className = "px-8 py-2 rounded-lg text-sm font-bold bg-blue-100 text-blue-700 border border-blue-200 transition";
+                subDaily.className = "px-8 py-2 rounded-lg text-sm font-bold bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 transition";
+            }
+            calculateAndRender();
+        };
+
+        // --- 6. Core Math Engine ---
+        window.calculateAndRender = function() {
+            let activeLedgerType = window.masterMode === 'offline' ? 'offline' : window.dashSubMode;
+            let gt = 0;
+
+            const badge = document.getElementById('active-ledger-badge');
+            if(activeLedgerType === 'offline') {
+                badge.innerText = 'Offline Ledger';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-100 text-amber-700';
+            } else if (activeLedgerType === 'daily') {
+                badge.innerText = 'Online - Daily Ledger';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700';
+            } else {
+                badge.innerText = 'Online - Weekly Ledger';
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700';
+            }
+
+            // Customer Math
+            window.customers.forEach(c => {
+                let given = c.transactions.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0);
+                let taken = c.transactions.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0);
+                let rawBalance = given - taken;
+                c.rawBalance = rawBalance;
+
+                if (c.frequency === activeLedgerType) {
+                    if(window.masterMode === 'online') {
+                        // NEW REQUIREMENT: Online deducts a % from the balance before GT
+                        let deduct = rawBalance * (window.percentages['p-online'] / 100);
+                        gt += (rawBalance - deduct);
+                    } else {
+                        // Offline keeps original logic
+                        gt += rawBalance;
+                    }
+                }
+            });
+
+            // Rest of formulas
+            const p1 = window.percentages['p1'];
+            const p2 = window.percentages['p2'];
+            const p3 = window.percentages['p3'];
+            const tbVal = parseFloat(document.getElementById('input-tb').value) || 0;
+            const laVal = parseFloat(document.getElementById('input-la').value) || 0;
+
+            const gtAdjustment = -1 * (gt * (p1 / 100));
+            const tbAmount = -1 * (tbVal * (p2 / 100));
+            const multiplierAmount = p2 * 1000;
+            const usedLineAmount = laVal >= 0 ? laVal : laVal - (laVal * (p3 / 100));
+            
+            const finalGrandTotal = gtAdjustment + tbAmount + multiplierAmount + usedLineAmount;
+
+            window.currentCalculations = { ledgerType: activeLedgerType, gt, gtAdjustment, tbAmount, multiplierAmount, usedLineAmount, finalGrandTotal };
+
+            // Render Updates
+            document.getElementById('dash-gt').innerText = formatINR(gt);
+            document.getElementById('dash-gt-adj').innerText = formatINR(gtAdjustment);
+            document.getElementById('dash-tb-amt').innerText = formatINR(tbAmount);
+            document.getElementById('dash-tb-mult').innerText = formatINR(multiplierAmount);
+            document.getElementById('dash-used-la').innerText = formatINR(usedLineAmount);
+            
+            document.getElementById('sum-gt-adj').innerText = formatINR(gtAdjustment);
+            document.getElementById('sum-tb-amt').innerText = formatINR(tbAmount);
+            document.getElementById('sum-tb-mult').innerText = formatINR(multiplierAmount);
+            document.getElementById('sum-la').innerText = formatINR(usedLineAmount);
+            
+            const finalTotalEl = document.getElementById('dash-final-total');
+            finalTotalEl.innerText = formatINR(finalGrandTotal);
+            finalTotalEl.className = `text-3xl md:text-5xl font-bold ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+            renderCustomerList();
+            if (window.activeCustomerId) renderCustomerProfile();
+        };
+
+        // --- Navigation ---
+        window.switchView = function(viewName) {
+            ['dashboard', 'list', 'profile', 'history'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden-view');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden-view');
+            
+            ['dash', 'list', 'history'].forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                if(btn) {
+                    if(id === viewName) {
+                        btn.classList.add('bg-slate-700'); btn.classList.remove('hover:bg-slate-700');
+                    } else {
+                        btn.classList.remove('bg-slate-700'); btn.classList.add('hover:bg-slate-700');
+                    }
+                }
+            });
+
+            if(viewName === 'history') window.renderHistory();
+            else calculateAndRender();
+        };
+
+        window.openProfile = function(id) {
+            window.activeCustomerId = id;
+            document.getElementById('new-tx-date').value = getTodayString();
+            window.switchView('profile');
+        };
+
+        // --- Rendering ---
+        window.renderCustomerList = function() {
+            const tbody = document.getElementById('customer-table-body');
+            document.getElementById('dir-title').innerText = window.masterMode === 'online' ? 'Online Directory' : 'Offline Directory';
+            tbody.innerHTML = '';
+
+            let hasRows = false;
+            window.customers.forEach(c => {
+                // Filter view based on master mode
+                if (window.masterMode === 'online' && c.frequency === 'offline') return;
+                if (window.masterMode === 'offline' && c.frequency !== 'offline') return;
+
+                hasRows = true;
+                const colorClass = c.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
+                const freqBadge = c.frequency === 'offline' ? 'bg-amber-100 text-amber-700' : (c.frequency === 'daily' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700');
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer" onclick="openProfile('${c.id}')">
+                        <td class="p-3 md:p-4 font-semibold text-slate-800">${c.name}</td>
+                        <td class="p-3 md:p-4"><span class="px-2 py-1 text-xs font-bold uppercase rounded ${freqBadge}">${c.frequency}</span></td>
+                        <td class="p-3 md:p-4 font-bold text-right ${colorClass}">${formatINR(c.rawBalance)}</td>
+                    </tr>
+                `;
+            });
+
+            if (!hasRows) tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No customers in this segment.</td></tr>';
+        };
+
+        window.renderCustomerProfile = function() {
+            const customer = window.customers.find(c => c.id === window.activeCustomerId);
+            if (!customer) return;
+
+            document.getElementById('prof-name').innerText = customer.name;
+            const freqEl = document.getElementById('prof-freq');
+            freqEl.innerText = customer.frequency;
+            freqEl.className = `text-xs font-bold uppercase tracking-wider px-2 py-1 rounded mt-1 inline-block ${customer.frequency === 'offline' ? 'text-amber-700 bg-amber-100' : 'text-blue-700 bg-blue-100'}`;
+
+            document.getElementById('prof-balance').innerText = formatINR(customer.rawBalance);
+            document.getElementById('prof-balance').className = `text-2xl font-bold ${customer.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+
+            const tbody = document.getElementById('tx-table-body');
+            tbody.innerHTML = '';
+            
+            if (!customer.transactions || customer.transactions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500 italic">No transactions recorded.</td></tr>`;
+            } else {
+                const sortedTxs = [...customer.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                sortedTxs.forEach(t => {
+                    const bgClass = t.type === 'given' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800';
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-100">
+                            <td class="p-3 text-sm text-slate-600">${t.date}</td>
+                            <td class="p-3"><span class="px-2 py-1 rounded border text-xs font-bold uppercase ${bgClass}">${t.type}</span></td>
+                            <td class="p-3 text-right font-bold text-slate-700">${formatINR(t.amount)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        };
+
+        window.renderHistory = function() {
+            const container = document.getElementById('history-list-container');
+            const filterDate = document.getElementById('filter-history-date').value;
+            container.innerHTML = '';
+
+            let displayRecords = [...window.savedStatements].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (filterDate) displayRecords = displayRecords.filter(r => r.date === filterDate);
+
+            if (displayRecords.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-50 italic">No DB statements found.</div>`;
+                return;
+            }
+
+            displayRecords.forEach(record => {
+                const badgeClass = record.ledgerType === 'offline' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700';
+                container.innerHTML += `
+                    <div class="border border-slate-200 rounded-xl p-4 md:p-6 shadow-sm bg-slate-50">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                            <h3 class="text-lg font-bold text-navy">${record.date}</h3>
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase border ${badgeClass}">${record.ledgerType} Ledger</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
+                            <p class="text-sm font-bold text-slate-600 uppercase">Final Total</p>
+                            <p class="text-2xl font-bold ${record.finalGrandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatINR(record.finalGrandTotal)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        // --- Database Writes ---
+        window.addCustomer = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-cust-name').value.trim();
+            const frequency = document.getElementById('new-cust-freq').value;
+
+            const newCust = { name, frequency, transactions: [] };
+            
+            if(useFirebase) {
+                const docRef = await addDoc(collection(db, "customers"), newCust);
+                newCust.id = docRef.id;
+            } else {
+                newCust.id = Date.now().toString();
+            }
+
+            window.customers.push(newCust);
+            document.getElementById('new-cust-name').value = '';
+            calculateAndRender();
+        };
+
+        window.addTransaction = async function(e) {
+            e.preventDefault();
+            const date = document.getElementById('new-tx-date').value;
+            const type = document.getElementById('new-tx-type').value;
+            const amount = parseFloat(document.getElementById('new-tx-amount').value);
+
+            const tx = { id: Date.now(), date, type, amount };
+            const customer = window.customers.find(c => c.id === window.activeCustomerId);
+            
+            if(useFirebase) {
+                const custRef = doc(db, "customers", customer.id);
+                await updateDoc(custRef, { transactions: arrayUnion(tx) });
+            }
+            
+            customer.transactions.push(tx);
+            document.getElementById('new-tx-amount').value = '';
+            calculateAndRender();
+        };
+
+        window.saveStatement = async function() {
+            const date = document.getElementById('save-statement-date').value;
+            const payload = { date, ...window.currentCalculations };
+
+            if(useFirebase) {
+                const docRef = await addDoc(collection(db, "statements"), payload);
+                payload.id = docRef.id;
+            } else {
+                payload.id = Date.now().toString();
+            }
+
+            window.savedStatements.push(payload);
+            alert(`DB Statement Locked for ${date}!`);
+        };
+
+        window.clearHistoryFilter = function() {
+            document.getElementById('filter-history-date').value = '';
+            window.renderHistory();
+        };
+
+    </script>
+</body>
+</html>
