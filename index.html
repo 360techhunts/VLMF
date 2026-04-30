@@ -2,59 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Optimized viewport for modern mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FIRM Ledger Pro</title>
     
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/anonymous.png">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden-view { display: none !important; }
-        input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 14px; }
+        /* Prevent iOS Zoom on Inputs */
+        input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 16px !important; }
+        
         .text-navy { color: #0f172a; }
         .bg-navy { background-color: #0f172a; }
         .text-emerald { color: #059669; }
         .bg-emerald { background-color: #059669; }
         
-        /* Role-Based Access Control */
+        /* RBAC Protection */
         body[data-role="viewer"] .admin-only { display: none !important; }
         
-        /* Segmented Control Styling */
+        /* Segmented Control */
         .segment-active { background-color: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .segment-inactive { color: #64748b; }
         .segment-inactive:hover { color: #1e293b; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        /* Scrollbars */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar { height: 4px; width: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans pb-10 min-h-screen flex flex-col text-sm" data-role="viewer">
+<body class="bg-slate-50 font-sans pb-12 min-h-screen flex flex-col text-sm" data-role="viewer">
+
+    <!-- APP VERSION (Forces Cache Update Check) -->
+    <meta name="app-version" content="1.1.0">
 
     <!-- ========================================== -->
     <!-- LOGIN SCREEN                               -->
     <!-- ========================================== -->
-    <div id="auth-container" class="flex-1 flex items-center justify-center p-4 bg-slate-50">
-        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-slate-100">
-            <div class="w-12 h-12 bg-navy text-white rounded-lg flex items-center justify-center text-xl font-bold mb-4 mx-auto shadow-md">F</div>
+    <div id="auth-container" class="flex-1 flex items-center justify-center p-4 bg-slate-100">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl max-w-sm w-full border border-slate-200">
+            <div class="w-14 h-14 bg-navy text-white rounded-2xl flex items-center justify-center text-2xl font-black mb-4 mx-auto shadow-lg shadow-navy/30">F</div>
             <h2 class="text-2xl font-extrabold text-navy mb-1 text-center tracking-tight">Firm Ledger</h2>
             <p class="text-xs text-slate-500 text-center mb-6">Secure access required.</p>
             
             <form id="login-form" class="space-y-4">
                 <div>
-                    <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition" required />
+                    <input type="email" id="login-email" placeholder="Email Address" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition font-medium" required />
                 </div>
                 <div>
-                    <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition" required />
+                    <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition font-medium" required />
                 </div>
-                <button type="submit" class="w-full bg-navy text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-md">Sign In</button>
-                <p id="login-error" class="text-red-500 text-xs text-center font-semibold mt-2 hidden-view"></p>
+                <button type="submit" class="w-full bg-navy text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition shadow-lg shadow-navy/20 active:scale-95">Sign In</button>
+                <p id="login-error" class="text-red-500 text-xs text-center font-bold mt-3 hidden-view bg-red-50 p-2 rounded-lg"></p>
             </form>
         </div>
     </div>
@@ -64,166 +70,171 @@
     <!-- ========================================== -->
     <div id="app-wrapper" class="hidden-view w-full">
         
-        <!-- App Navigation Bar -->
-        <nav class="bg-navy text-white shadow-md sticky top-0 z-50">
-            <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center h-auto md:h-14 py-2 md:py-0 gap-3">
-                <div class="flex items-center gap-4 w-full md:w-auto justify-between">
-                    <h1 class="font-extrabold text-lg tracking-tight">FIRM<span class="text-blue-400">Ledger</span></h1>
+        <!-- App Navigation Bar (Mobile Optimized) -->
+        <nav class="bg-navy text-white shadow-md sticky top-0 z-50 pt-safe">
+            <div class="max-w-6xl mx-auto px-3 sm:px-4 py-3">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h1 class="font-extrabold text-lg tracking-tight truncate">FIRM<span class="text-blue-400">Ledger</span></h1>
                     
-                    <div class="flex bg-slate-800 rounded-lg p-1">
-                        <button onclick="setMasterMode('online')" id="master-online" class="px-4 py-1 rounded-md text-xs font-bold bg-white text-navy shadow-sm transition">ONLINE</button>
-                        <button onclick="setMasterMode('offline')" id="master-offline" class="px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition">OFFLINE</button>
+                    <div class="flex bg-slate-800/80 rounded-lg p-1 shrink-0">
+                        <button onclick="setMasterMode('online')" id="master-online" class="px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold bg-white text-navy shadow-sm transition">ONLINE</button>
+                        <button onclick="setMasterMode('offline')" id="master-offline" class="px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold text-slate-400 hover:text-white transition">OFFLINE</button>
                     </div>
                 </div>
 
-                <div class="flex space-x-1 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
-                    <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 transition whitespace-nowrap">Dashboard</button>
-                    <button onclick="switchView('list')" id="nav-list" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">Customers</button>
-                    <button onclick="switchView('netcash')" id="nav-netcash" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">Net Cash</button>
-                    <button onclick="switchView('history')" id="nav-history" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-700 transition whitespace-nowrap">History</button>
-                    <div class="w-px bg-slate-700 mx-2"></div>
-                    <button onclick="logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-400 hover:bg-slate-800 transition whitespace-nowrap flex items-center gap-1">
-                        <span id="role-indicator" class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300 uppercase"></span> Logout
+                <!-- Scrollable Nav Links -->
+                <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0">
+                    <button onclick="switchView('dashboard')" id="nav-dash" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 transition whitespace-nowrap active:bg-slate-600">Dashboard</button>
+                    <button onclick="switchView('list')" id="nav-list" class="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition whitespace-nowrap active:bg-slate-600 text-slate-300 hover:text-white">Customers</button>
+                    <button onclick="switchView('netcash')" id="nav-netcash" class="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition whitespace-nowrap active:bg-slate-600 text-slate-300 hover:text-white">Net Cash</button>
+                    <button onclick="switchView('history')" id="nav-history" class="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition whitespace-nowrap active:bg-slate-600 text-slate-300 hover:text-white">History</button>
+                    <div class="w-px bg-slate-700/50 mx-1 shrink-0"></div>
+                    <button onclick="logout()" class="px-4 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-slate-800 transition whitespace-nowrap flex items-center gap-1.5 active:bg-slate-700 shrink-0">
+                        <span id="role-indicator" class="text-[9px] bg-slate-800/80 px-1.5 py-0.5 rounded text-slate-300 uppercase tracking-widest border border-slate-700"></span>
+                        Logout
                     </button>
                 </div>
             </div>
         </nav>
 
-        <div class="max-w-6xl mx-auto p-4 mt-2" id="app-container">
+        <div class="max-w-6xl mx-auto p-3 sm:p-4 mt-2" id="app-container">
 
             <!-- ========================================== -->
             <!-- VIEW 1: DASHBOARD                          -->
             <!-- ========================================== -->
             <div id="view-dashboard" class="space-y-4">
                 
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-                    <div id="online-subtabs" class="bg-slate-200 p-1 rounded-lg flex justify-center w-full sm:w-auto shadow-inner">
-                        <button onclick="setSubMode('daily')" id="subtab-daily" class="flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition">Daily</button>
-                        <button onclick="setSubMode('weekly')" id="subtab-weekly" class="flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition">Weekly</button>
+                <!-- Date & Submode Controls (Mobile Stacking) -->
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <div id="online-subtabs" class="bg-slate-100 p-1 rounded-xl flex w-full sm:w-auto shadow-inner">
+                        <button onclick="setSubMode('daily')" id="subtab-daily" class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold segment-active transition">Daily</button>
+                        <button onclick="setSubMode('weekly')" id="subtab-weekly" class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold segment-inactive transition">Weekly</button>
                     </div>
 
-                    <!-- AS OF DATE SELECTOR -->
-                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200 w-full sm:w-auto justify-center">
-                        <label class="text-xs font-bold text-slate-500 uppercase px-1">Ledger As Of:</label>
-                        <input type="date" id="dash-as-of-date" onchange="calculateAndRender()" class="bg-white border border-slate-200 p-1 rounded text-xs font-bold focus:border-blue-500 focus:outline-none text-navy">
+                    <div class="flex items-center justify-between sm:justify-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 w-full sm:w-auto">
+                        <label class="text-xs font-bold text-slate-500 uppercase px-1 tracking-wider">As Of:</label>
+                        <input type="date" id="dash-as-of-date" onchange="calculateAndRender()" class="bg-white border border-slate-200 p-1.5 rounded-lg text-xs font-bold focus:border-blue-500 focus:outline-none text-navy w-full sm:w-auto">
                     </div>
                 </div>
 
                 <!-- Main Overview Card -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1.5 h-full" id="overview-color-bar" style="background-color: #3b82f6;"></div>
-                    <div class="flex justify-between items-start pl-2">
-                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Segment Overview</h3>
-                        <span id="active-ledger-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">Online Daily</span>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full" id="overview-color-bar" style="background-color: #3b82f6;"></div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start pl-3 gap-2">
+                        <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Segment Overview</h3>
+                        <span id="active-ledger-badge" class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 self-start sm:self-auto tracking-wider">Online Daily</span>
                     </div>
-                    <div class="mt-2 pl-2">
-                        <p class="text-3xl md:text-5xl font-extrabold text-navy tracking-tight" id="dash-gt">₹0.00</p>
-                        <p class="text-xs text-slate-400 font-medium mt-1">Raw Grand Total (Calculated up to selected date)</p>
+                    <div class="mt-3 pl-3">
+                        <p class="text-4xl md:text-5xl font-black text-navy tracking-tighter" id="dash-gt">₹0.00</p>
+                        <p class="text-[11px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Raw Grand Total</p>
                     </div>
 
-                    <!-- ONLINE ONLY: Customer Deduction % -->
-                    <div id="online-deduction-container" class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between pl-2">
+                    <div id="online-deduction-container" class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between pl-3 gap-3">
                         <div>
                             <p class="text-xs font-bold text-slate-700">Online Customer Deduction</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span id="display-p-online" class="text-lg font-bold text-blue-600 bg-blue-50 px-2 rounded border border-blue-100">10%</span>
-                            <input type="number" id="input-p-online" value="10" class="hidden-view w-16 border border-blue-300 p-1 rounded text-center font-bold text-sm" />
-                            <button id="edit-btn-p-online" onclick="toggleEdit('p-online')" class="admin-only text-slate-400 hover:text-blue-600 transition">✏️</button>
-                            <button id="save-btn-p-online" onclick="saveEdit('p-online')" class="hidden-view text-emerald-600 transition">✅</button>
+                            <span id="display-p-online" class="text-lg font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">10%</span>
+                            <input type="number" id="input-p-online" value="10" class="hidden-view w-20 border-2 border-blue-300 p-2 rounded-lg text-center font-bold text-sm" />
+                            <button id="edit-btn-p-online" onclick="toggleEdit('p-online')" class="admin-only text-slate-400 hover:text-blue-600 transition p-2 bg-slate-50 rounded-lg">✏️ Edit</button>
+                            <button id="save-btn-p-online" onclick="saveEdit('p-online')" class="hidden-view text-emerald-600 font-bold p-2 bg-emerald-50 rounded-lg transition">✅ Save</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Controls Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    
                     <!-- GT Adjustment -->
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-700 uppercase">GT Adjustment</h3>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">GT Adjustment</h3>
                             <div class="flex items-center gap-2">
-                                <span id="display-p1" class="font-bold text-purple-600 bg-purple-50 px-1.5 rounded border border-purple-100">10%</span>
-                                <input type="number" id="input-p1" value="10" class="hidden-view w-12 border border-purple-300 p-0.5 rounded text-center text-xs" />
-                                <button id="edit-btn-p1" onclick="toggleEdit('p1')" class="admin-only text-slate-400 hover:text-purple-600 text-xs">✏️</button>
-                                <button id="save-btn-p1" onclick="saveEdit('p1')" class="hidden-view text-emerald-600 text-xs">✅</button>
+                                <span id="display-p1" class="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">10%</span>
+                                <input type="number" id="input-p1" value="10" class="hidden-view w-16 border border-purple-300 p-1 rounded text-center text-sm font-bold" />
+                                <button id="edit-btn-p1" onclick="toggleEdit('p1')" class="admin-only text-slate-400 p-1">✏️</button>
+                                <button id="save-btn-p1" onclick="saveEdit('p1')" class="hidden-view text-emerald-600 p-1">✅</button>
                             </div>
                         </div>
-                        <div class="mt-auto">
-                            <p class="text-[10px] text-slate-400 font-semibold uppercase">Amount</p>
-                            <p class="font-bold text-slate-800 text-lg" id="dash-gt-adj">₹0.00</p>
+                        <div class="mt-auto bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Deduction Amount</p>
+                            <p class="font-black text-slate-800 text-xl" id="dash-gt-adj">₹0.00</p>
                         </div>
                     </div>
 
                     <!-- Total Balance -->
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-700 uppercase">Total Balance (TB)</h3>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Total Balance</h3>
                             <div class="flex items-center gap-2">
-                                <span id="display-p2" class="font-bold text-emerald-600 bg-emerald-50 px-1.5 rounded border border-emerald-100">5%</span>
-                                <input type="number" id="input-p2" value="5" class="hidden-view w-12 border border-emerald-300 p-0.5 rounded text-center text-xs" />
-                                <button id="edit-btn-p2" onclick="toggleEdit('p2')" class="admin-only text-slate-400 hover:text-emerald-600 text-xs">✏️</button>
-                                <button id="save-btn-p2" onclick="saveEdit('p2')" class="hidden-view text-emerald-600 text-xs">✅</button>
+                                <span id="display-p2" class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">5%</span>
+                                <input type="number" id="input-p2" value="5" class="hidden-view w-16 border border-emerald-300 p-1 rounded text-center text-sm font-bold" />
+                                <button id="edit-btn-p2" onclick="toggleEdit('p2')" class="admin-only text-slate-400 p-1">✏️</button>
+                                <button id="save-btn-p2" onclick="saveEdit('p2')" class="hidden-view text-emerald-600 p-1">✅</button>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <input type="number" id="input-tb" value="25000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg focus:bg-white focus:border-emerald-500 focus:outline-none text-sm" />
-                            <p class="viewer-only font-semibold text-slate-600 text-sm hidden" id="viewer-tb">₹25,000</p>
+                        <div class="mb-4">
+                            <input type="number" id="input-tb" value="25000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none text-sm font-bold text-slate-700" />
+                            <p class="viewer-only font-bold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 hidden" id="viewer-tb">₹25,000</p>
                         </div>
-                        <div class="flex justify-between items-end mt-auto bg-slate-50 p-2 rounded-lg">
+                        <div class="flex justify-between items-end mt-auto bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <div>
-                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Calc Amt</p>
-                                <p class="font-bold text-slate-800" id="dash-tb-amt">₹0.00</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Calc Amt</p>
+                                <p class="font-black text-slate-800 text-lg" id="dash-tb-amt">₹0.00</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Multiplier</p>
-                                <p class="font-bold text-slate-800" id="dash-tb-mult">₹0.00</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Multiplier</p>
+                                <p class="font-black text-slate-800 text-lg" id="dash-tb-mult">₹0.00</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Line Amount -->
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-700 uppercase">Line Amount</h3>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between sm:col-span-2 md:col-span-1">
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Line Amount</h3>
                             <div class="flex items-center gap-2">
-                                <span id="display-p3" class="font-bold text-orange-600 bg-orange-50 px-1.5 rounded border border-orange-100">15%</span>
-                                <input type="number" id="input-p3" value="15" class="hidden-view w-12 border border-orange-300 p-0.5 rounded text-center text-xs" />
-                                <button id="edit-btn-p3" onclick="toggleEdit('p3')" class="admin-only text-slate-400 hover:text-orange-600 text-xs">✏️</button>
-                                <button id="save-btn-p3" onclick="saveEdit('p3')" class="hidden-view text-emerald-600 text-xs">✅</button>
+                                <span id="display-p3" class="font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">15%</span>
+                                <input type="number" id="input-p3" value="15" class="hidden-view w-16 border border-orange-300 p-1 rounded text-center text-sm font-bold" />
+                                <button id="edit-btn-p3" onclick="toggleEdit('p3')" class="admin-only text-slate-400 p-1">✏️</button>
+                                <button id="save-btn-p3" onclick="saveEdit('p3')" class="hidden-view text-emerald-600 p-1">✅</button>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <input type="number" id="input-la" value="-15000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-1.5 rounded-lg focus:bg-white focus:border-orange-500 focus:outline-none text-sm" />
-                            <p class="viewer-only font-semibold text-slate-600 text-sm hidden" id="viewer-la">-₹15,000</p>
+                        <div class="mb-4">
+                            <input type="number" id="input-la" value="-15000" oninput="calculateAndRender()" class="admin-only w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none text-sm font-bold text-slate-700" />
+                            <p class="viewer-only font-bold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 hidden" id="viewer-la">-₹15,000</p>
                         </div>
-                        <div class="mt-auto">
-                            <p class="text-[10px] text-slate-400 font-semibold uppercase">Used Amount</p>
-                            <p class="font-bold text-slate-800 text-lg" id="dash-used-la">₹0.00</p>
+                        <div class="mt-auto bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Used Amount</p>
+                            <p class="font-black text-slate-800 text-lg" id="dash-used-la">₹0.00</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Final Summary & Save -->
-                <div class="bg-navy text-white p-5 rounded-2xl shadow-lg mt-4 relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-slate-800 rounded-full opacity-50 blur-xl"></div>
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-                        <div class="text-xs space-y-1 text-slate-400 font-mono">
-                            <div class="flex gap-4"><span class="w-28">+ GT Adj:</span> <span id="sum-gt-adj" class="text-slate-200">₹0.00</span></div>
-                            <div class="flex gap-4"><span class="w-28">+ TB Perc:</span> <span id="sum-tb-amt" class="text-slate-200">₹0.00</span></div>
-                            <div class="flex gap-4"><span class="w-28">+ TB Mult:</span> <span id="sum-tb-mult" class="text-slate-200">₹0.00</span></div>
-                            <div class="flex gap-4"><span class="w-28">+ Used LA:</span> <span id="sum-la" class="text-slate-200">₹0.00</span></div>
+                <div class="bg-navy text-white p-5 sm:p-7 rounded-3xl shadow-xl mt-6 relative overflow-hidden">
+                    <div class="absolute -right-20 -top-20 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl"></div>
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                        <div class="text-xs space-y-2 text-slate-300 font-mono w-full md:w-auto bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                            <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ GT Adj:</span> <span id="sum-gt-adj" class="font-bold">₹0.00</span></div>
+                            <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ TB Perc:</span> <span id="sum-tb-amt" class="font-bold">₹0.00</span></div>
+                            <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ TB Mult:</span> <span id="sum-tb-mult" class="font-bold">₹0.00</span></div>
+                            <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ Used LA:</span> <span id="sum-la" class="font-bold">₹0.00</span></div>
                         </div>
-                        <div class="text-left md:text-right w-full md:w-auto">
-                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Final Settlement</p>
-                            <p id="dash-final-total" class="text-3xl md:text-4xl font-extrabold tracking-tight">₹0.00</p>
+                        
+                        <div class="text-left md:text-right w-full md:w-auto bg-slate-900/50 p-5 rounded-2xl border border-slate-700">
+                            <p class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold mb-1">Final Settlement</p>
+                            <p id="dash-final-total" class="text-4xl sm:text-5xl font-black tracking-tighter">₹0.00</p>
                         </div>
                     </div>
                     
-                    <div class="admin-only mt-5 border-t border-slate-700/50 pt-4 flex flex-col sm:flex-row gap-3 items-center justify-between relative z-10">
-                        <div class="flex items-center gap-2 w-full sm:w-auto bg-slate-800/50 p-1.5 rounded-xl border border-slate-700/50">
-                            <input type="date" id="save-statement-date" class="w-full sm:w-auto bg-transparent text-white p-1 text-sm focus:outline-none" required />
+                    <div class="admin-only mt-6 pt-5 border-t border-slate-700/50 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between relative z-10">
+                        <div class="flex items-center gap-3 w-full sm:w-auto bg-slate-800 p-2 rounded-xl border border-slate-700">
+                            <label class="text-[10px] uppercase font-bold text-slate-400 px-2 tracking-wider">Save As:</label>
+                            <input type="date" id="save-statement-date" class="flex-1 sm:w-auto bg-transparent text-white font-bold focus:outline-none" required />
                         </div>
-                        <button onclick="saveStatement()" class="w-full sm:w-auto bg-emerald text-white font-bold px-6 py-2 rounded-xl hover:bg-emerald-600 active:bg-green-700 transition shadow-md text-sm">Lock to Database</button>
+                        <button onclick="saveStatement()" class="w-full sm:w-auto bg-emerald-500 text-white font-black px-8 py-3.5 rounded-xl hover:bg-emerald-400 active:scale-95 transition shadow-lg shadow-emerald-500/20 tracking-wide uppercase text-xs">Lock DB Snapshot</button>
                     </div>
                 </div>
             </div>
@@ -231,91 +242,93 @@
             <!-- ========================================== -->
             <!-- VIEW 2: CUSTOMER LIST                      -->
             <!-- ========================================== -->
-            <div id="view-list" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
-                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
-                    <h2 class="text-lg font-extrabold text-navy" id="dir-title">Directory</h2>
+            <div id="view-list" class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-navy tracking-tight" id="dir-title">Directory</h2>
                 </div>
                 
-                <div class="admin-only bg-slate-50 p-3 rounded-xl border border-slate-200 mb-6">
-                    <form onsubmit="addCustomer(event)" class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="new-cust-name" placeholder="Customer Name" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none text-sm" required />
-                        <select id="new-cust-freq" class="bg-white border border-slate-200 p-2 rounded-lg focus:border-blue-500 focus:outline-none text-sm font-medium">
+                <div class="admin-only bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6">
+                    <form onsubmit="addCustomer(event)" class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="new-cust-name" placeholder="Customer Name" class="flex-1 bg-white border border-slate-200 p-3 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-slate-700" required />
+                        <select id="new-cust-freq" class="bg-white border border-slate-200 p-3 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-slate-600">
                             <option value="daily">Daily Account</option>
                             <option value="weekly">Weekly Account</option>
                             <option value="offline">Offline Account</option>
                         </select>
-                        <button type="submit" class="bg-navy text-white font-bold px-4 py-2 rounded-lg hover:bg-slate-800 transition text-sm">Add User</button>
+                        <button type="submit" class="bg-navy text-white font-black px-6 py-3 rounded-xl hover:bg-slate-800 transition shadow-md active:scale-95">Add User</button>
                     </form>
                 </div>
 
-                <div id="directory-grid" class="grid grid-cols-1 gap-6"></div>
+                <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
             <!-- ========================================== -->
             <!-- VIEW 3: KHATABOOK CUSTOMER PROFILE         -->
             <!-- ========================================== -->
             <div id="view-profile" class="hidden-view">
-                <button onclick="switchView('list')" class="text-slate-500 text-xs font-bold hover:text-navy transition mb-4 flex items-center gap-1 uppercase tracking-wider">
+                <button onclick="switchView('list')" class="text-slate-500 text-xs font-bold hover:text-navy transition mb-4 flex items-center gap-1.5 uppercase tracking-wider bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-max shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back
+                    Back to List
                 </button>
 
-                <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 mb-5 gap-4">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <h2 id="prof-name" class="text-xl font-extrabold text-navy truncate">Customer Name</h2>
-                                <input type="text" id="edit-name-input" class="hidden-view text-lg font-bold border-b-2 border-blue-500 focus:outline-none px-1 w-full max-w-xs" />
-                                <button id="edit-name-btn" class="admin-only text-slate-400 hover:text-blue-600 transition" onclick="toggleEditName(true)">✏️</button>
-                                <button id="save-name-btn" class="hidden-view text-emerald-600 transition font-bold text-xs bg-emerald-50 px-2 py-1 rounded" onclick="saveName()">SAVE</button>
+                <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-5 mb-5 gap-4">
+                        <div class="flex-1 min-w-0 w-full">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h2 id="prof-name" class="text-2xl font-black text-navy truncate">Customer Name</h2>
+                                <input type="text" id="edit-name-input" class="hidden-view text-xl font-black border-b-2 border-blue-500 focus:outline-none px-1 w-full max-w-xs text-navy" />
+                                <button id="edit-name-btn" class="admin-only text-slate-400 hover:text-blue-600 transition p-1 bg-slate-50 rounded-md" onclick="toggleEditName(true)">✏️</button>
+                                <button id="save-name-btn" class="hidden-view text-emerald-600 transition font-black text-xs bg-emerald-50 px-3 py-1.5 rounded-lg" onclick="saveName()">SAVE</button>
                             </div>
-                            <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block">Daily</span>
+                            <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md inline-block">Daily</span>
                         </div>
-                        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-right w-full sm:w-auto">
-                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Net Balance</p>
-                            <p id="prof-balance" class="text-2xl font-extrabold">₹0.00</p>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left sm:text-right w-full sm:w-auto">
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Net Balance</p>
+                            <p id="prof-balance" class="text-3xl font-black tracking-tight">₹0.00</p>
                         </div>
                     </div>
 
                     <!-- Khatabook Style Entry Buttons -->
-                    <div class="admin-only grid grid-cols-2 gap-4 mb-6">
-                        <button onclick="openKhatabookForm('given')" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-extrabold py-4 rounded-xl transition flex flex-col items-center justify-center shadow-sm">
-                            <span class="text-xs uppercase tracking-widest opacity-80 mb-1">You Gave</span>
-                            <span class="text-xl">₹ (-)</span>
+                    <div class="admin-only grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+                        <button onclick="openKhatabookForm('given')" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-extrabold py-5 rounded-2xl transition flex flex-col items-center justify-center shadow-sm active:scale-95">
+                            <span class="text-[11px] sm:text-xs uppercase tracking-widest opacity-80 mb-1 font-bold">Amount Minus</span>
+                            <span class="text-xl sm:text-2xl">₹ (-)</span>
                         </button>
-                        <button onclick="openKhatabookForm('taken')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 font-extrabold py-4 rounded-xl transition flex flex-col items-center justify-center shadow-sm">
-                            <span class="text-xs uppercase tracking-widest opacity-80 mb-1">You Got</span>
-                            <span class="text-xl">₹ (+)</span>
+                        <button onclick="openKhatabookForm('taken')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 font-extrabold py-5 rounded-2xl transition flex flex-col items-center justify-center shadow-sm active:scale-95">
+                            <span class="text-[11px] sm:text-xs uppercase tracking-widest opacity-80 mb-1 font-bold">Amount Plus</span>
+                            <span class="text-xl sm:text-2xl">₹ (+)</span>
                         </button>
                     </div>
 
                     <!-- Hidden Entry Form -->
-                    <div id="khatabook-form-container" class="admin-only hidden-view bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 relative">
-                        <button onclick="closeKhatabookForm()" class="absolute top-2 right-3 text-slate-400 hover:text-slate-600 font-bold">✕</button>
-                        <h3 id="kb-form-title" class="text-sm font-bold text-navy mb-3 uppercase tracking-wider">New Entry</h3>
+                    <div id="khatabook-form-container" class="admin-only hidden-view bg-slate-800 p-5 rounded-2xl shadow-lg mb-6 relative">
+                        <button onclick="closeKhatabookForm()" class="absolute top-3 right-4 text-slate-400 hover:text-white font-bold text-lg">✕</button>
+                        <h3 id="kb-form-title" class="text-xs font-black text-white mb-4 uppercase tracking-wider">New Entry</h3>
                         <form onsubmit="addTransaction(event)" class="flex flex-col sm:flex-row gap-3">
                             <input type="hidden" id="kb-tx-type" value="given">
-                            <input type="date" id="kb-tx-date" class="w-full sm:w-auto border border-slate-300 p-2 rounded-lg focus:border-blue-500 focus:outline-none font-bold text-slate-700" required />
-                            <input type="number" id="kb-tx-amount" min="1" placeholder="Enter Amount (₹)" class="w-full flex-1 border border-slate-300 p-2 rounded-lg focus:border-blue-500 focus:outline-none font-bold text-lg text-slate-800" required />
-                            <button type="submit" id="kb-submit-btn" class="w-full sm:w-auto bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">SAVE</button>
+                            <input type="date" id="kb-tx-date" class="w-full sm:w-auto bg-slate-700 border border-slate-600 text-white p-3 rounded-xl focus:border-blue-400 focus:outline-none font-bold" required />
+                            <input type="number" id="kb-tx-amount" min="1" placeholder="Enter Amount (₹)" class="w-full flex-1 bg-slate-700 border border-slate-600 text-white p-3 rounded-xl focus:border-blue-400 focus:outline-none font-black text-lg placeholder-slate-400" required />
+                            <button type="submit" id="kb-submit-btn" class="w-full sm:w-auto bg-blue-500 text-white font-black px-8 py-3 rounded-xl hover:bg-blue-400 transition shadow-md active:scale-95 uppercase tracking-wide">SAVE</button>
                         </form>
                     </div>
 
                     <!-- Passbook Style Ledger -->
                     <div>
-                        <h3 class="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider">Passbook History</h3>
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="min-w-full text-left border-collapse whitespace-nowrap">
-                                <thead>
-                                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
-                                        <th class="p-3 w-28 font-bold">Date</th>
-                                        <th class="p-3 text-right font-bold text-red-600">You Gave (-)</th>
-                                        <th class="p-3 text-right font-bold text-emerald-600">You Got (+)</th>
-                                        <th class="p-3 text-right font-bold bg-slate-100">Running Bal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tx-table-body" class="text-sm"></tbody>
-                            </table>
+                        <h3 class="text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-widest">Passbook History</h3>
+                        <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                            <div class="inline-block min-w-full rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                                <table class="min-w-full text-left border-collapse whitespace-nowrap bg-white">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-widest border-b border-slate-200">
+                                            <th class="p-3 sm:p-4 font-bold">Date</th>
+                                            <th class="p-3 sm:p-4 text-right font-bold text-red-500">Minus (-)</th>
+                                            <th class="p-3 sm:p-4 text-right font-bold text-emerald-500">Plus (+)</th>
+                                            <th class="p-3 sm:p-4 text-right font-bold bg-slate-100/50 text-slate-600">Run Bal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tx-table-body" class="text-sm font-medium"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -324,28 +337,26 @@
             <!-- ========================================== -->
             <!-- VIEW 4: NET CASH DAYBOOK                   -->
             <!-- ========================================== -->
-            <div id="view-netcash" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
-                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
-                    <h2 class="text-lg font-extrabold text-navy">Net Cash Daybook</h2>
+            <div id="view-netcash" class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-black text-navy tracking-tight">Net Cash Daybook</h2>
                 </div>
-                <div class="space-y-4" id="netcash-list-container">
-                    <!-- Injected via JS -->
-                </div>
+                <div class="space-y-4" id="netcash-list-container"></div>
             </div>
 
             <!-- ========================================== -->
             <!-- VIEW 5: LEDGER HISTORY                     -->
             <!-- ========================================== -->
-            <div id="view-history" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 hidden-view">
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-5 border-b border-slate-100 pb-4 gap-3">
-                    <h2 class="text-lg font-extrabold text-navy">Saved DB Statements</h2>
-                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
-                        <label class="text-xs font-bold text-slate-500 uppercase px-1">Filter:</label>
-                        <input type="date" id="filter-history-date" onchange="renderHistory()" class="bg-white border border-slate-200 p-1 rounded text-xs focus:border-blue-500 focus:outline-none">
-                        <button onclick="clearHistoryFilter()" class="bg-slate-200 text-slate-600 px-2 py-1 rounded text-xs hover:bg-slate-300 font-bold transition">Clear</button>
+            <div id="view-history" class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 hidden-view">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 border-b border-slate-100 pb-4 gap-4">
+                    <h2 class="text-xl font-black text-navy tracking-tight">DB Snapshots</h2>
+                    <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 w-full sm:w-auto">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-widest">Filter:</label>
+                        <input type="date" id="filter-history-date" onchange="renderHistory()" class="bg-white border border-slate-200 p-1.5 rounded-lg text-xs font-bold focus:border-blue-500 focus:outline-none flex-1">
+                        <button onclick="clearHistoryFilter()" class="bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-300 transition active:scale-95">Clear</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="history-list-container"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="history-list-container"></div>
             </div>
 
         </div>
@@ -355,7 +366,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW reg failed:', err));
             });
         }
     </script>
@@ -366,7 +377,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        // NOTE: We added getDoc to the imports below!
         import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -388,7 +398,6 @@
             useFirebase = true;
         } catch(e) { console.error("Firebase init failed", e); }
 
-        // --- State Variables ---
         window.masterMode = 'online'; 
         window.dashSubMode = 'daily'; 
         window.percentages = { p1: 10, p2: 5, p3: 15, 'p-online': 10 };
@@ -402,10 +411,10 @@
         const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
         const getTodayString = () => new Date().toISOString().split('T')[0];
 
-        // --- Authentication & Database RBAC ---
+        // --- Auth ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value.toLowerCase();
+            const email = document.getElementById('login-email').value.toLowerCase().trim();
             const pwd = document.getElementById('login-password').value;
             const errEl = document.getElementById('login-error');
             
@@ -428,7 +437,6 @@
         if(useFirebase) {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Check the database for this user's role
                     try {
                         const userDocRef = doc(db, "users", user.email.toLowerCase());
                         const userDocSnap = await getDoc(userDocRef);
@@ -436,16 +444,15 @@
                         if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
                             window.currentUserRole = 'admin';
                         } else {
-                            window.currentUserRole = 'viewer'; // Default to viewer if no admin record found
+                            window.currentUserRole = 'viewer';
                         }
                     } catch (error) {
                         console.error("Error fetching role:", error);
-                        window.currentUserRole = 'viewer'; // Failsafe
+                        window.currentUserRole = 'viewer'; 
                     }
 
                     document.body.setAttribute('data-role', window.currentUserRole);
                     document.getElementById('role-indicator').innerText = window.currentUserRole;
-                    
                     fetchDataFromFirebase().then(showApp);
                 } else {
                     document.getElementById('auth-container').classList.remove('hidden-view');
@@ -458,7 +465,6 @@
             document.getElementById('auth-container').classList.add('hidden-view');
             document.getElementById('app-wrapper').classList.remove('hidden-view');
             
-            // Sync viewer UI states
             document.getElementById('viewer-tb').innerText = formatINR(parseFloat(document.getElementById('input-tb').value) || 0);
             document.getElementById('viewer-la').innerText = formatINR(parseFloat(document.getElementById('input-la').value) || 0);
             
@@ -482,7 +488,7 @@
             stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
         }
 
-        // --- Khatabook UI Logic ---
+        // --- Khatabook UI ---
         window.openKhatabookForm = function(type) {
             const container = document.getElementById('khatabook-form-container');
             const title = document.getElementById('kb-form-title');
@@ -496,15 +502,13 @@
             typeInput.value = type;
 
             if(type === 'given') {
-                container.className = 'admin-only bg-red-50 p-4 rounded-xl border border-red-200 mb-6 relative';
-                title.innerText = 'Recording: You Gave (-)';
-                title.className = 'text-sm font-extrabold text-red-800 mb-3 uppercase tracking-wider';
-                submitBtn.className = 'w-full sm:w-auto bg-red-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-red-700 transition shadow-sm';
+                title.innerText = 'Recording: Amount Minus (-)';
+                title.className = 'text-[10px] font-black text-red-400 mb-3 uppercase tracking-widest';
+                submitBtn.className = 'w-full sm:w-auto bg-red-500 text-white font-black px-8 py-3 rounded-xl hover:bg-red-400 transition shadow-md active:scale-95 uppercase tracking-wide';
             } else {
-                container.className = 'admin-only bg-emerald-50 p-4 rounded-xl border border-emerald-200 mb-6 relative';
-                title.innerText = 'Recording: You Got (+)';
-                title.className = 'text-sm font-extrabold text-emerald-800 mb-3 uppercase tracking-wider';
-                submitBtn.className = 'w-full sm:w-auto bg-emerald-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm';
+                title.innerText = 'Recording: Amount Plus (+)';
+                title.className = 'text-[10px] font-black text-emerald-400 mb-3 uppercase tracking-widest';
+                submitBtn.className = 'w-full sm:w-auto bg-emerald-500 text-white font-black px-8 py-3 rounded-xl hover:bg-emerald-400 transition shadow-md active:scale-95 uppercase tracking-wide';
             }
             document.getElementById('kb-tx-amount').focus();
         };
@@ -513,7 +517,7 @@
             document.getElementById('khatabook-form-container').classList.add('hidden-view');
         };
 
-        // --- Editing Customer Name ---
+        // --- Edits ---
         window.toggleEditName = function(isEditing) {
             const nameEl = document.getElementById('prof-name');
             const inputEl = document.getElementById('edit-name-input');
@@ -538,21 +542,17 @@
         window.saveName = async function() {
             const newName = document.getElementById('edit-name-input').value.trim();
             if(!newName) return;
-            
             const customer = window.customers.find(c => c.id === window.activeCustomerId);
             customer.name = newName;
-
             if(useFirebase) {
                 const custRef = doc(db, "customers", customer.id);
                 await updateDoc(custRef, { name: newName });
             }
-
             document.getElementById('prof-name').innerText = newName;
             window.toggleEditName(false);
             window.renderCustomerList(); 
         };
 
-        // --- Percentages UI Toggle ---
         window.toggleEdit = function(id) {
             document.getElementById(`display-${id}`).classList.add('hidden-view');
             document.getElementById(`edit-btn-${id}`).classList.add('hidden-view');
@@ -563,18 +563,15 @@
         window.saveEdit = function(id) {
             const val = parseFloat(document.getElementById(`input-${id}`).value) || 0;
             window.percentages[id] = val;
-            
             document.getElementById(`display-${id}`).innerText = val + '%';
-            
             document.getElementById(`display-${id}`).classList.remove('hidden-view');
             document.getElementById(`edit-btn-${id}`).classList.remove('hidden-view');
             document.getElementById(`input-${id}`).classList.add('hidden-view');
             document.getElementById(`save-btn-${id}`).classList.add('hidden-view');
-            
             calculateAndRender();
         };
 
-        // --- Mode Toggles ---
+        // --- Modes ---
         window.setMasterMode = function(mode) {
             window.masterMode = mode;
             const btnOn = document.getElementById('master-online');
@@ -583,13 +580,13 @@
             const pOnlineContainer = document.getElementById('online-deduction-container');
 
             if(mode === 'online') {
-                btnOn.className = "px-4 py-1 rounded-md text-xs font-bold bg-white text-navy shadow-sm transition";
-                btnOff.className = "px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition";
+                btnOn.className = "px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold bg-white text-navy shadow-sm transition";
+                btnOff.className = "px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold text-slate-400 hover:text-white transition";
                 subTabs.classList.remove('hidden-view');
                 pOnlineContainer.classList.remove('hidden-view');
             } else {
-                btnOff.className = "px-4 py-1 rounded-md text-xs font-bold bg-amber-500 text-white shadow-sm transition";
-                btnOn.className = "px-4 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition";
+                btnOff.className = "px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold bg-amber-500 text-white shadow-sm transition";
+                btnOn.className = "px-3 sm:px-4 py-1.5 rounded-md text-[11px] sm:text-xs font-bold text-slate-400 hover:text-white transition";
                 subTabs.classList.add('hidden-view');
                 pOnlineContainer.classList.add('hidden-view');
             }
@@ -603,16 +600,16 @@
             const subWeekly = document.getElementById('subtab-weekly');
 
             if(submode === 'daily') {
-                subDaily.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition";
+                subDaily.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition shadow-sm";
                 subWeekly.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition";
             } else {
-                subWeekly.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition";
+                subWeekly.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-active transition shadow-sm";
                 subDaily.className = "flex-1 sm:flex-none px-6 py-1.5 rounded-md text-xs font-bold segment-inactive transition";
             }
             calculateAndRender();
         };
 
-        // --- Core Math Engine ---
+        // --- Math Engine ---
         window.calculateAndRender = function() {
             const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
             let activeLedgerType = window.masterMode === 'offline' ? 'offline' : window.dashSubMode;
@@ -623,19 +620,18 @@
 
             if(activeLedgerType === 'offline') {
                 badge.innerText = 'Offline Ledger';
-                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-700 border border-amber-200';
+                badge.className = 'px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto tracking-wider';
                 colorBar.style.backgroundColor = '#f59e0b';
             } else if (activeLedgerType === 'daily') {
                 badge.innerText = 'Online Daily';
-                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200';
+                badge.className = 'px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 self-start sm:self-auto tracking-wider';
                 colorBar.style.backgroundColor = '#3b82f6';
             } else {
                 badge.innerText = 'Online Weekly';
-                badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-700 border border-purple-200';
+                badge.className = 'px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border border-purple-200 self-start sm:self-auto tracking-wider';
                 colorBar.style.backgroundColor = '#a855f7';
             }
 
-            // Customer Math (Filtered by As Of Date)
             window.customers.forEach(c => {
                 const validTxs = c.transactions ? c.transactions.filter(t => t.date <= asOfDate) : [];
                 let given = validTxs.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0);
@@ -668,7 +664,6 @@
             const usedLineAmount = laVal >= 0 ? laVal : laVal - (laVal * (p3 / 100));
             
             const finalGrandTotal = gtAdjustment + tbAmount + multiplierAmount + usedLineAmount;
-
             window.currentCalculations = { ledgerType: activeLedgerType, gt, gtAdjustment, tbAmount, multiplierAmount, usedLineAmount, finalGrandTotal };
 
             document.getElementById('dash-gt').innerText = formatINR(gt);
@@ -684,7 +679,7 @@
             
             const finalTotalEl = document.getElementById('dash-final-total');
             finalTotalEl.innerText = formatINR(finalGrandTotal);
-            finalTotalEl.className = `text-3xl md:text-4xl font-extrabold tracking-tight ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            finalTotalEl.className = `text-4xl sm:text-5xl font-black tracking-tighter ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
 
             if (window.activeCustomerId) window.renderCustomerProfile();
         };
@@ -701,9 +696,9 @@
                 const btn = document.getElementById(`nav-${id}`);
                 if(btn) {
                     if(id === viewName) {
-                        btn.classList.add('bg-slate-700'); btn.classList.remove('hover:bg-slate-700');
+                        btn.classList.add('bg-slate-600', 'text-white'); btn.classList.remove('hover:bg-slate-700', 'text-slate-300');
                     } else {
-                        btn.classList.remove('bg-slate-700'); btn.classList.add('hover:bg-slate-700');
+                        btn.classList.remove('bg-slate-600', 'text-white'); btn.classList.add('hover:bg-slate-700', 'text-slate-300');
                     }
                 }
             });
@@ -723,32 +718,30 @@
             window.switchView('profile');
         };
 
-        // --- Rendering Lists ---
+        // --- Rendering ---
         function createTableHTML(title, colorClass, dataArray) {
             let rows = '';
             let hasRows = false;
-            
             dataArray.forEach(c => {
                 hasRows = true;
                 const balClass = c.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
                 rows += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer" onclick="openProfile('${c.id}')">
-                        <td class="p-3 font-bold text-slate-800">${c.name}</td>
-                        <td class="p-3 font-extrabold text-right ${balClass}">${formatINR(c.rawBalance)}</td>
+                        <td class="p-3 sm:p-4 font-bold text-slate-800">${c.name}</td>
+                        <td class="p-3 sm:p-4 font-black text-right ${balClass}">${formatINR(c.rawBalance)}</td>
                     </tr>
                 `;
             });
-
             if(!hasRows) rows = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic text-xs">No records found.</td></tr>`;
 
             return `
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div class="${colorClass} px-4 py-2 border-b border-slate-200">
-                        <h3 class="font-bold text-xs uppercase tracking-wider">${title}</h3>
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div class="${colorClass} px-4 py-3 border-b border-slate-200">
+                        <h3 class="font-bold text-[11px] uppercase tracking-widest">${title}</h3>
                     </div>
                     <div class="overflow-x-auto bg-white">
                         <table class="min-w-full text-left border-collapse whitespace-nowrap text-sm">
-                            <tbody class="divide-y divide-slate-100">${rows}</tbody>
+                            <tbody class="divide-y divide-slate-50">${rows}</tbody>
                         </table>
                     </div>
                 </div>
@@ -757,9 +750,6 @@
 
         window.renderCustomerList = function() {
             const grid = document.getElementById('directory-grid');
-            
-            // Note: Since list doesn't depend on "As Of" date, we show raw real-time balances here.
-            // Recalculate raw balances real quick without date filter for directory
             window.customers.forEach(c => {
                 let given = c.transactions ? c.transactions.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0) : 0;
                 let taken = c.transactions ? c.transactions.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0) : 0;
@@ -794,46 +784,42 @@
             let fClass = 'bg-amber-100 text-amber-700';
             if (customer.frequency === 'daily') fClass = 'bg-blue-100 text-blue-700';
             if (customer.frequency === 'weekly') fClass = 'bg-purple-100 text-purple-700';
-            freqEl.className = `text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block ${fClass}`;
+            freqEl.className = `text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mt-1.5 inline-block ${fClass}`;
 
-            // Calculate current total balance for profile header
             let totalGiven = customer.transactions ? customer.transactions.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0) : 0;
             let totalTaken = customer.transactions ? customer.transactions.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0) : 0;
             let currentBal = totalGiven - totalTaken;
 
             document.getElementById('prof-balance').innerText = formatINR(currentBal);
-            document.getElementById('prof-balance').className = `text-2xl font-extrabold ${currentBal >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+            document.getElementById('prof-balance').className = `text-3xl font-black tracking-tight ${currentBal >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
 
             const tbody = document.getElementById('tx-table-body');
             tbody.innerHTML = '';
             
             if (!customer.transactions || customer.transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic text-xs">No passbook records.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic text-xs font-bold">No passbook records.</td></tr>`;
             } else {
-                // Sort Oldest to Newest to calculate running balance accurately
                 let sortedTxs = [...customer.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
                 let runningBal = 0;
                 
-                // Add running balance to each
                 sortedTxs = sortedTxs.map(t => {
                     runningBal += (t.type === 'given' ? t.amount : -t.amount);
                     return { ...t, rBal: runningBal };
                 });
 
-                // Reverse to show newest at top
                 sortedTxs.reverse();
 
                 sortedTxs.forEach(t => {
-                    const givenAmt = t.type === 'given' ? formatINR(t.amount) : '-';
-                    const takenAmt = t.type === 'taken' ? formatINR(t.amount) : '-';
+                    const givenAmt = t.type === 'given' ? '- ' + formatINR(t.amount) : '-';
+                    const takenAmt = t.type === 'taken' ? '+ ' + formatINR(t.amount) : '-';
                     const rBalClass = t.rBal >= 0 ? 'text-emerald-600' : 'text-red-600';
                     
                     tbody.innerHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                            <td class="p-3 text-xs font-bold text-slate-500">${t.date}</td>
-                            <td class="p-3 text-right font-bold text-red-500">${givenAmt}</td>
-                            <td class="p-3 text-right font-bold text-emerald-500">${takenAmt}</td>
-                            <td class="p-3 text-right font-extrabold bg-slate-50 border-l border-slate-100 ${rBalClass}">${formatINR(t.rBal)}</td>
+                            <td class="p-3 sm:p-4 text-xs font-bold text-slate-500">${t.date}</td>
+                            <td class="p-3 sm:p-4 text-right font-black text-red-500">${givenAmt}</td>
+                            <td class="p-3 sm:p-4 text-right font-black text-emerald-500">${takenAmt}</td>
+                            <td class="p-3 sm:p-4 text-right font-black bg-slate-50/50 border-l border-slate-100 ${rBalClass}">${formatINR(t.rBal)}</td>
                         </tr>
                     `;
                 });
@@ -843,7 +829,6 @@
         window.renderNetCash = function() {
             const container = document.getElementById('netcash-list-container');
             container.innerHTML = '';
-
             let dailyCash = {};
 
             window.customers.forEach(c => {
@@ -859,33 +844,33 @@
             const sortedDates = Object.keys(dailyCash).sort((a,b) => new Date(b) - new Date(a));
 
             if (sortedDates.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl italic text-sm">No transaction data available.</div>`;
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-2xl italic text-sm font-bold">No transaction data available.</div>`;
                 return;
             }
 
             sortedDates.forEach(date => {
                 const data = dailyCash[date];
-                const netCash = data.taken - data.given; // Cash Flow: Got - Gave
+                const netCash = data.taken - data.given; 
                 const netClass = netCash >= 0 ? 'text-emerald-600' : 'text-red-600';
 
                 container.innerHTML += `
-                    <div class="border border-slate-200 rounded-2xl p-4 shadow-sm bg-white hover:shadow-md transition">
-                        <div class="border-b border-slate-100 pb-2 mb-3">
-                            <h3 class="text-sm font-extrabold text-navy">${date}</h3>
+                    <div class="border border-slate-200 rounded-3xl p-5 shadow-sm bg-white hover:shadow-md transition">
+                        <div class="border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="text-sm font-extrabold text-navy tracking-wide">${date}</h3>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 mb-3">
-                            <div class="bg-red-50 p-2 rounded-lg border border-red-100">
-                                <p class="text-[10px] font-bold text-red-500 uppercase">Total Cash Out (Gave)</p>
-                                <p class="text-lg font-bold text-red-700">${formatINR(data.given)}</p>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
+                                <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1">Total Cash Out (Minus)</p>
+                                <p class="text-xl font-black text-red-700">${formatINR(data.given)}</p>
                             </div>
-                            <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
-                                <p class="text-[10px] font-bold text-emerald-600 uppercase">Total Cash In (Got)</p>
-                                <p class="text-lg font-bold text-emerald-800">${formatINR(data.taken)}</p>
+                            <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Cash In (Plus)</p>
+                                <p class="text-xl font-black text-emerald-800">${formatINR(data.taken)}</p>
                             </div>
                         </div>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
                             <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Net Cash Flow</p>
-                            <p class="text-xl font-extrabold ${netClass}">${formatINR(netCash)}</p>
+                            <p class="text-2xl font-black tracking-tight ${netClass}">${formatINR(netCash)}</p>
                         </div>
                     </div>
                 `;
@@ -901,7 +886,7 @@
             if (filterDate) displayRecords = displayRecords.filter(r => r.date === filterDate);
 
             if (displayRecords.length === 0) {
-                container.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl italic text-sm">No DB statements found.</div>`;
+                container.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-2xl italic text-sm font-bold">No DB statements found.</div>`;
                 return;
             }
 
@@ -911,14 +896,14 @@
                 if(record.ledgerType === 'weekly') bClass = 'bg-purple-100 text-purple-700';
 
                 container.innerHTML += `
-                    <div class="border border-slate-200 rounded-2xl p-5 shadow-sm bg-slate-50 hover:shadow-md transition">
+                    <div class="border border-slate-200 rounded-3xl p-5 shadow-sm bg-slate-50 hover:shadow-md transition">
                         <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
-                            <h3 class="text-sm font-extrabold text-navy">${record.date}</h3>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-white/50 ${bClass}">${record.ledgerType}</span>
+                            <h3 class="text-sm font-extrabold text-navy tracking-wide">${record.date}</h3>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-white/50 ${bClass} tracking-widest">${record.ledgerType}</span>
                         </div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Final Total</p>
-                            <p class="text-xl font-extrabold ${record.finalGrandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatINR(record.finalGrandTotal)}</p>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col justify-center shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Final Total</p>
+                            <p class="text-2xl font-black tracking-tight ${record.finalGrandTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatINR(record.finalGrandTotal)}</p>
                         </div>
                     </div>
                 `;
@@ -930,15 +915,12 @@
             e.preventDefault();
             const name = document.getElementById('new-cust-name').value.trim();
             const frequency = document.getElementById('new-cust-freq').value;
-
             const newCust = { name, frequency, transactions: [] };
             
             if(useFirebase) {
                 const docRef = await addDoc(collection(db, "customers"), newCust);
                 newCust.id = docRef.id;
-            } else {
-                newCust.id = Date.now().toString();
-            }
+            } else { newCust.id = Date.now().toString(); }
 
             window.customers.push(newCust);
             document.getElementById('new-cust-name').value = '';
@@ -973,9 +955,7 @@
             if(useFirebase) {
                 const docRef = await addDoc(collection(db, "statements"), payload);
                 payload.id = docRef.id;
-            } else {
-                payload.id = Date.now().toString();
-            }
+            } else { payload.id = Date.now().toString(); }
 
             window.savedStatements.push(payload);
             alert(`Database Statement Locked for ${date}!`);
