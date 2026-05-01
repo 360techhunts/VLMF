@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-pro-cache-v1.111';
+const CACHE_NAME = 'finance-pro-cache-v1.112';
 const urlsToCache = [
   './index.html',
   './manifest.json'
