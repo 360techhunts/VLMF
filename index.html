@@ -35,7 +35,7 @@
 </head>
 <body class="bg-slate-50 font-sans pb-12 min-h-screen flex flex-col text-sm" data-role="viewer">
 
-    <meta name="app-version" content="1.4.0">
+    <meta name="app-version" content="1.5.0">
 
     <!-- ========================================== -->
     <!-- LOGIN SCREEN                               -->
@@ -133,6 +133,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Cards omitted here for brevity, identical to previous structure -->
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                             <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">GT Adjustment</h3>
@@ -169,7 +170,7 @@
                                 <p class="font-black text-slate-800 text-lg" id="dash-tb-amt">₹0.00</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Rent</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Multiplier</p>
                                 <p class="font-black text-slate-800 text-lg" id="dash-tb-mult">₹0.00</p>
                             </div>
                         </div>
@@ -257,12 +258,12 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-5 mb-5 gap-4">
                         <div class="flex-1 min-w-0 w-full">
                             <div class="flex items-center gap-2 mb-1">
-                                <h2 id="prof-name" class="text-2xl font-black text-navy truncate">Customer Name</h2>
+                                <h2 id="prof-name" class="text-2xl font-black text-navy truncate">Loading...</h2>
                                 <input type="text" id="edit-name-input" class="hidden-view text-xl font-black border-b-2 border-blue-500 focus:outline-none px-1 w-full max-w-xs text-navy" />
                                 <button id="edit-name-btn" class="admin-only text-slate-400 hover:text-blue-600 transition p-1 bg-slate-50 rounded-md" onclick="toggleEditName(true)">✏️</button>
                                 <button id="save-name-btn" class="hidden-view text-emerald-600 transition font-black text-xs bg-emerald-50 px-3 py-1.5 rounded-lg" onclick="saveName()">SAVE</button>
                             </div>
-                            <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md inline-block">Daily</span>
+                            <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md inline-block bg-slate-100 text-slate-400">---</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left sm:text-right w-full sm:w-auto">
                             <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Overall Raw Balance</p>
@@ -350,6 +351,7 @@
         </div>
     </div>
 
+    <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -467,11 +469,15 @@
         async function fetchDataFromFirebase() {
             window.customers = [];
             window.savedStatements = [];
-            const custSnap = await getDocs(collection(db, "customers"));
-            custSnap.forEach((doc) => { window.customers.push({ id: doc.id, ...doc.data() }); });
-            
-            const stateSnap = await getDocs(collection(db, "statements"));
-            stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
+            try {
+                const custSnap = await getDocs(collection(db, "customers"));
+                custSnap.forEach((doc) => { window.customers.push({ id: doc.id, ...doc.data() }); });
+                
+                const stateSnap = await getDocs(collection(db, "statements"));
+                stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
+            } catch (err) {
+                console.error("Error fetching DB Data:", err);
+            }
         }
 
         window.handleDateChange = function() {
@@ -533,9 +539,11 @@
         window.saveName = async function() {
             const newName = document.getElementById('edit-name-input').value.trim();
             if(!newName) return;
-            const customer = window.customers.find(c => String(c.id) === String(window.activeCustomerId));
-            if(!customer) return;
             
+            // Failsafe matcher
+            const customer = window.customers.find(c => String(c.id).trim() === String(window.activeCustomerId).trim());
+            if(!customer) return;
+
             customer.name = newName;
             if(useFirebase) {
                 const custRef = doc(db, "customers", customer.id);
@@ -700,7 +708,7 @@
         };
 
         window.openProfile = function(id) {
-            window.activeCustomerId = String(id);
+            window.activeCustomerId = String(id).trim();
             window.toggleEditName(false); 
             window.closeKhatabookForm();
             window.switchView('profile');
@@ -774,11 +782,12 @@
 
         window.renderCustomerProfile = function() {
             try {
-                // Fail-Proof Matcher (Handles strings vs numbers automatically)
-                const customer = window.customers.find(c => String(c.id) === String(window.activeCustomerId));
+                // EXTREMELY AGGRESSIVE FAIL-PROOF MATCHER
+                const searchId = String(window.activeCustomerId).trim();
+                const customer = window.customers.find(c => String(c.id).trim() === searchId);
                 
                 if (!customer) {
-                    console.error("Customer lookup failed for ID:", window.activeCustomerId);
+                    alert("FATAL ERROR: Could not locate customer data for ID: " + searchId);
                     return;
                 }
 
@@ -803,7 +812,6 @@
                 document.getElementById('prof-balance').innerText = formatINR(currentBal);
                 document.getElementById('prof-balance').className = `text-3xl font-black tracking-tight ${currentBal >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
 
-                // Lifetime Summary
                 let lifetimeGiven = allTxs.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0);
                 let lifetimeTaken = allTxs.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0);
                 let lifetimeNet = lifetimeTaken - lifetimeGiven; 
@@ -829,7 +837,6 @@
                     </div>
                 `;
 
-                // Daily Snapshot
                 const dailySnapshotContainer = document.getElementById('prof-daily-snapshot');
                 const todayTxs = allTxs.filter(t => t.date === asOfDate);
                 let todayGiven = todayTxs.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0);
@@ -865,7 +872,6 @@
                     </div>
                 `;
 
-                // Passbook
                 const tbody = document.getElementById('tx-table-body');
                 tbody.innerHTML = '';
                 
@@ -898,7 +904,8 @@
                     });
                 }
             } catch (err) {
-                console.error("Error rendering profile:", err);
+                console.error("FATAL UI RENDER ERROR:", err);
+                alert("Render Error: " + err.message);
             }
         };
 
@@ -1008,7 +1015,7 @@
             const amount = parseFloat(document.getElementById('kb-tx-amount').value);
 
             const tx = { id: Date.now(), date, type, amount };
-            const customer = window.customers.find(c => String(c.id) === String(window.activeCustomerId));
+            const customer = window.customers.find(c => String(c.id).trim() === String(window.activeCustomerId).trim());
             if(!customer) return;
             
             if(useFirebase) {
