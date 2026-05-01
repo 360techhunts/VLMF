@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Optimized viewport for modern mobile devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FIRM Ledger Pro</title>
     
@@ -15,7 +14,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden-view { display: none !important; }
-        /* Prevent iOS Zoom on Inputs */
         input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select { font-size: 16px !important; }
         
         .text-navy { color: #0f172a; }
@@ -23,15 +21,12 @@
         .text-emerald { color: #059669; }
         .bg-emerald { background-color: #059669; }
         
-        /* RBAC Protection */
         body[data-role="viewer"] .admin-only { display: none !important; }
         
-        /* Segmented Control */
         .segment-active { background-color: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .segment-inactive { color: #64748b; }
         .segment-inactive:hover { color: #1e293b; }
         
-        /* Scrollbars */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         ::-webkit-scrollbar { height: 4px; width: 4px; }
@@ -40,8 +35,7 @@
 </head>
 <body class="bg-slate-50 font-sans pb-12 min-h-screen flex flex-col text-sm" data-role="viewer">
 
-    <!-- APP VERSION (Forces Cache Update Check) -->
-    <meta name="app-version" content="1.1.0">
+    <meta name="app-version" content="1.2.0">
 
     <!-- ========================================== -->
     <!-- LOGIN SCREEN                               -->
@@ -70,7 +64,6 @@
     <!-- ========================================== -->
     <div id="app-wrapper" class="hidden-view w-full">
         
-        <!-- App Navigation Bar (Mobile Optimized) -->
         <nav class="bg-navy text-white shadow-md sticky top-0 z-50 pt-safe">
             <div class="max-w-6xl mx-auto px-3 sm:px-4 py-3">
                 <div class="flex items-center justify-between gap-2 mb-3">
@@ -82,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- Scrollable Nav Links -->
                 <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0">
                     <button onclick="switchView('dashboard')" id="nav-dash" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 transition whitespace-nowrap active:bg-slate-600">Dashboard</button>
                     <button onclick="switchView('list')" id="nav-list" class="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition whitespace-nowrap active:bg-slate-600 text-slate-300 hover:text-white">Customers</button>
@@ -90,8 +82,7 @@
                     <button onclick="switchView('history')" id="nav-history" class="px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition whitespace-nowrap active:bg-slate-600 text-slate-300 hover:text-white">History</button>
                     <div class="w-px bg-slate-700/50 mx-1 shrink-0"></div>
                     <button onclick="logout()" class="px-4 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-slate-800 transition whitespace-nowrap flex items-center gap-1.5 active:bg-slate-700 shrink-0">
-                        <span id="role-indicator" class="text-[9px] bg-slate-800/80 px-1.5 py-0.5 rounded text-slate-300 uppercase tracking-widest border border-slate-700"></span>
-                        Logout
+                        <span id="role-indicator" class="text-[9px] bg-slate-800/80 px-1.5 py-0.5 rounded text-slate-300 uppercase tracking-widest border border-slate-700"></span> Logout
                     </button>
                 </div>
             </div>
@@ -99,25 +90,24 @@
 
         <div class="max-w-6xl mx-auto p-3 sm:p-4 mt-2" id="app-container">
 
+            <!-- GLOBAL AS OF DATE SELECTOR -->
+            <div class="flex items-center justify-between sm:justify-center gap-2 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-4">
+                <label class="text-xs font-black text-navy uppercase px-1 tracking-widest">Global Ledger Date:</label>
+                <input type="date" id="dash-as-of-date" onchange="handleDateChange()" class="bg-slate-50 border border-slate-200 p-2 rounded-xl text-sm font-bold focus:border-blue-500 focus:outline-none text-blue-700 w-full sm:w-auto shadow-inner">
+            </div>
+
             <!-- ========================================== -->
             <!-- VIEW 1: DASHBOARD                          -->
             <!-- ========================================== -->
             <div id="view-dashboard" class="space-y-4">
                 
-                <!-- Date & Submode Controls (Mobile Stacking) -->
-                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-center bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
                     <div id="online-subtabs" class="bg-slate-100 p-1 rounded-xl flex w-full sm:w-auto shadow-inner">
-                        <button onclick="setSubMode('daily')" id="subtab-daily" class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold segment-active transition">Daily</button>
-                        <button onclick="setSubMode('weekly')" id="subtab-weekly" class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold segment-inactive transition">Weekly</button>
-                    </div>
-
-                    <div class="flex items-center justify-between sm:justify-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 w-full sm:w-auto">
-                        <label class="text-xs font-bold text-slate-500 uppercase px-1 tracking-wider">As Of:</label>
-                        <input type="date" id="dash-as-of-date" onchange="calculateAndRender()" class="bg-white border border-slate-200 p-1.5 rounded-lg text-xs font-bold focus:border-blue-500 focus:outline-none text-navy w-full sm:w-auto">
+                        <button onclick="setSubMode('daily')" id="subtab-daily" class="flex-1 sm:flex-none px-8 py-2 rounded-lg text-xs font-bold segment-active transition">Daily Accounts</button>
+                        <button onclick="setSubMode('weekly')" id="subtab-weekly" class="flex-1 sm:flex-none px-8 py-2 rounded-lg text-xs font-bold segment-inactive transition">Weekly Accounts</button>
                     </div>
                 </div>
 
-                <!-- Main Overview Card -->
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-2 h-full" id="overview-color-bar" style="background-color: #3b82f6;"></div>
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start pl-3 gap-2">
@@ -142,10 +132,7 @@
                     </div>
                 </div>
 
-                <!-- Controls Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    
-                    <!-- GT Adjustment -->
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                             <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">GT Adjustment</h3>
@@ -162,7 +149,6 @@
                         </div>
                     </div>
 
-                    <!-- Total Balance -->
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                             <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Total Balance</h3>
@@ -189,7 +175,6 @@
                         </div>
                     </div>
 
-                    <!-- Line Amount -->
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between sm:col-span-2 md:col-span-1">
                         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                             <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Line Amount</h3>
@@ -211,10 +196,8 @@
                     </div>
                 </div>
 
-                <!-- Final Summary & Save -->
                 <div class="bg-navy text-white p-5 sm:p-7 rounded-3xl shadow-xl mt-6 relative overflow-hidden">
                     <div class="absolute -right-20 -top-20 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl"></div>
-                    
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                         <div class="text-xs space-y-2 text-slate-300 font-mono w-full md:w-auto bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
                             <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ GT Adj:</span> <span id="sum-gt-adj" class="font-bold">₹0.00</span></div>
@@ -222,13 +205,11 @@
                             <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ TB Mult:</span> <span id="sum-tb-mult" class="font-bold">₹0.00</span></div>
                             <div class="flex justify-between md:justify-start gap-6"><span class="w-24 opacity-70">+ Used LA:</span> <span id="sum-la" class="font-bold">₹0.00</span></div>
                         </div>
-                        
                         <div class="text-left md:text-right w-full md:w-auto bg-slate-900/50 p-5 rounded-2xl border border-slate-700">
                             <p class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold mb-1">Final Settlement</p>
                             <p id="dash-final-total" class="text-4xl sm:text-5xl font-black tracking-tighter">₹0.00</p>
                         </div>
                     </div>
-                    
                     <div class="admin-only mt-6 pt-5 border-t border-slate-700/50 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between relative z-10">
                         <div class="flex items-center gap-3 w-full sm:w-auto bg-slate-800 p-2 rounded-xl border border-slate-700">
                             <label class="text-[10px] uppercase font-bold text-slate-400 px-2 tracking-wider">Save As:</label>
@@ -263,7 +244,7 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- VIEW 3: KHATABOOK CUSTOMER PROFILE         -->
+            <!-- VIEW 3: CUSTOMER PROFILE                   -->
             <!-- ========================================== -->
             <div id="view-profile" class="hidden-view">
                 <button onclick="switchView('list')" class="text-slate-500 text-xs font-bold hover:text-navy transition mb-4 flex items-center gap-1.5 uppercase tracking-wider bg-white px-3 py-1.5 rounded-lg border border-slate-200 w-max shadow-sm">
@@ -272,6 +253,7 @@
                 </button>
 
                 <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200">
+                    
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-5 mb-5 gap-4">
                         <div class="flex-1 min-w-0 w-full">
                             <div class="flex items-center gap-2 mb-1">
@@ -283,12 +265,16 @@
                             <span id="prof-freq" class="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md inline-block">Daily</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left sm:text-right w-full sm:w-auto">
-                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Net Balance</p>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Overall Net Balance</p>
                             <p id="prof-balance" class="text-3xl font-black tracking-tight">₹0.00</p>
                         </div>
                     </div>
 
-                    <!-- Khatabook Style Entry Buttons -->
+                    <!-- NEW: DAILY / SPECIFIC DATE SNAPSHOT -->
+                    <div id="prof-daily-snapshot" class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <!-- Injected via JS based on the asOfDate -->
+                    </div>
+
                     <div class="admin-only grid grid-cols-2 gap-3 sm:gap-4 mb-6">
                         <button onclick="openKhatabookForm('given')" class="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-extrabold py-5 rounded-2xl transition flex flex-col items-center justify-center shadow-sm active:scale-95">
                             <span class="text-[11px] sm:text-xs uppercase tracking-widest opacity-80 mb-1 font-bold">Amount Minus</span>
@@ -300,7 +286,6 @@
                         </button>
                     </div>
 
-                    <!-- Hidden Entry Form -->
                     <div id="khatabook-form-container" class="admin-only hidden-view bg-slate-800 p-5 rounded-2xl shadow-lg mb-6 relative">
                         <button onclick="closeKhatabookForm()" class="absolute top-3 right-4 text-slate-400 hover:text-white font-bold text-lg">✕</button>
                         <h3 id="kb-form-title" class="text-xs font-black text-white mb-4 uppercase tracking-wider">New Entry</h3>
@@ -312,7 +297,6 @@
                         </form>
                     </div>
 
-                    <!-- Passbook Style Ledger -->
                     <div>
                         <h3 class="text-xs font-extrabold text-slate-500 mb-3 uppercase tracking-widest">Passbook History</h3>
                         <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -411,7 +395,6 @@
         const formatINR = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
         const getTodayString = () => new Date().toISOString().split('T')[0];
 
-        // --- Auth ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value.toLowerCase().trim();
@@ -488,14 +471,21 @@
             stateSnap.forEach((doc) => { window.savedStatements.push({ id: doc.id, ...doc.data() }); });
         }
 
-        // --- Khatabook UI ---
+        window.handleDateChange = function() {
+            calculateAndRender();
+            // Also refresh lists if they are open to reflect badges
+            window.renderCustomerList();
+            if (window.activeCustomerId) window.renderCustomerProfile();
+        };
+
         window.openKhatabookForm = function(type) {
             const container = document.getElementById('khatabook-form-container');
             const title = document.getElementById('kb-form-title');
             const typeInput = document.getElementById('kb-tx-type');
             const submitBtn = document.getElementById('kb-submit-btn');
+            const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
             
-            document.getElementById('kb-tx-date').value = getTodayString();
+            document.getElementById('kb-tx-date').value = asOfDate; // Default to selected global date
             document.getElementById('kb-tx-amount').value = '';
 
             container.classList.remove('hidden-view');
@@ -517,7 +507,6 @@
             document.getElementById('khatabook-form-container').classList.add('hidden-view');
         };
 
-        // --- Edits ---
         window.toggleEditName = function(isEditing) {
             const nameEl = document.getElementById('prof-name');
             const inputEl = document.getElementById('edit-name-input');
@@ -571,7 +560,6 @@
             calculateAndRender();
         };
 
-        // --- Modes ---
         window.setMasterMode = function(mode) {
             window.masterMode = mode;
             const btnOn = document.getElementById('master-online');
@@ -609,7 +597,6 @@
             calculateAndRender();
         };
 
-        // --- Math Engine ---
         window.calculateAndRender = function() {
             const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
             let activeLedgerType = window.masterMode === 'offline' ? 'offline' : window.dashSubMode;
@@ -680,11 +667,8 @@
             const finalTotalEl = document.getElementById('dash-final-total');
             finalTotalEl.innerText = formatINR(finalGrandTotal);
             finalTotalEl.className = `text-4xl sm:text-5xl font-black tracking-tighter ${finalGrandTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
-
-            if (window.activeCustomerId) window.renderCustomerProfile();
         };
 
-        // --- Navigation ---
         window.switchView = function(viewName) {
             ['dashboard', 'list', 'profile', 'history', 'netcash'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
@@ -718,16 +702,24 @@
             window.switchView('profile');
         };
 
-        // --- Rendering ---
         function createTableHTML(title, colorClass, dataArray) {
             let rows = '';
             let hasRows = false;
+            const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
+
             dataArray.forEach(c => {
                 hasRows = true;
                 const balClass = c.rawBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
+                
+                // Active Badge Check for selected date
+                const hasActivity = c.transactions && c.transactions.some(t => t.date === asOfDate);
+                const activityBadge = hasActivity 
+                    ? `<span class="bg-emerald-100 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded ml-2 tracking-wider">ACTIVE</span>`
+                    : `<span class="bg-slate-100 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded ml-2 tracking-wider">PENDING</span>`;
+
                 rows += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer" onclick="openProfile('${c.id}')">
-                        <td class="p-3 sm:p-4 font-bold text-slate-800">${c.name}</td>
+                        <td class="p-3 sm:p-4 font-bold text-slate-800 flex items-center">${c.name} ${activityBadge}</td>
                         <td class="p-3 sm:p-4 font-black text-right ${balClass}">${formatINR(c.rawBalance)}</td>
                     </tr>
                 `;
@@ -736,7 +728,7 @@
 
             return `
                 <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <div class="${colorClass} px-4 py-3 border-b border-slate-200">
+                    <div class="${colorClass} px-4 py-3 border-b border-slate-200 flex justify-between items-center">
                         <h3 class="font-bold text-[11px] uppercase tracking-widest">${title}</h3>
                     </div>
                     <div class="overflow-x-auto bg-white">
@@ -750,9 +742,13 @@
 
         window.renderCustomerList = function() {
             const grid = document.getElementById('directory-grid');
+            const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
+            
+            // Recalculate up to asOfDate for directory viewing
             window.customers.forEach(c => {
-                let given = c.transactions ? c.transactions.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0) : 0;
-                let taken = c.transactions ? c.transactions.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0) : 0;
+                const validTxs = c.transactions ? c.transactions.filter(t => t.date <= asOfDate) : [];
+                let given = validTxs.filter(t => t.type === 'given').reduce((sum, t) => sum + t.amount, 0);
+                let taken = validTxs.filter(t => t.type === 'taken').reduce((sum, t) => sum + t.amount, 0);
                 c.dirBalance = given - taken;
             });
 
@@ -786,32 +782,73 @@
             if (customer.frequency === 'weekly') fClass = 'bg-purple-100 text-purple-700';
             freqEl.className = `text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mt-1.5 inline-block ${fClass}`;
 
-            let totalGiven = customer.transactions ? customer.transactions.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0) : 0;
-            let totalTaken = customer.transactions ? customer.transactions.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0) : 0;
+            const asOfDate = document.getElementById('dash-as-of-date').value || getTodayString();
+            
+            // Calculate OVERALL Balance up to selected date
+            const validTxs = customer.transactions ? customer.transactions.filter(t => t.date <= asOfDate) : [];
+            let totalGiven = validTxs.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0);
+            let totalTaken = validTxs.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0);
             let currentBal = totalGiven - totalTaken;
 
             document.getElementById('prof-balance').innerText = formatINR(currentBal);
             document.getElementById('prof-balance').className = `text-3xl font-black tracking-tight ${currentBal >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
 
+            // --- DAILY SNAPSHOT GENERATION ---
+            const dailySnapshotContainer = document.getElementById('prof-daily-snapshot');
+            const todayTxs = customer.transactions ? customer.transactions.filter(t => t.date === asOfDate) : [];
+            let todayGiven = todayTxs.filter(t => t.type === 'given').reduce((s, t) => s + t.amount, 0);
+            let todayTaken = todayTxs.filter(t => t.type === 'taken').reduce((s, t) => s + t.amount, 0);
+            let todayNet = todayTaken - todayGiven;
+            
+            const netColor = todayNet >= 0 ? 'text-emerald-600' : 'text-red-600';
+            const netLabel = todayNet >= 0 ? 'GAINED' : 'LOST';
+
+            dailySnapshotContainer.innerHTML = `
+                <div class="flex-1 w-full">
+                    <p class="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1 flex items-center justify-between">
+                        Activity On: ${asOfDate}
+                        ${todayTxs.length > 0 
+                            ? '<span class="bg-emerald-500 text-white px-2 py-0.5 rounded uppercase">Participated</span>' 
+                            : '<span class="bg-slate-300 text-slate-600 px-2 py-0.5 rounded uppercase">No Entry</span>'}
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="bg-white/60 p-2 rounded-lg border border-blue-200/50">
+                            <p class="text-[9px] text-red-600 font-bold uppercase tracking-wider">Minus</p>
+                            <p class="font-bold text-slate-800 text-sm">${formatINR(todayGiven)}</p>
+                        </div>
+                        <div class="bg-white/60 p-2 rounded-lg border border-blue-200/50">
+                            <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">Plus</p>
+                            <p class="font-bold text-slate-800 text-sm">${formatINR(todayTaken)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm w-full md:w-auto text-center md:text-right min-w-[120px]">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Daily P&L</p>
+                    <p class="text-xl font-black ${netColor} tracking-tight">${formatINR(todayNet)}</p>
+                    <p class="text-[9px] font-bold ${netColor} uppercase tracking-widest">${netLabel}</p>
+                </div>
+            `;
+            // ----------------------------------
+
             const tbody = document.getElementById('tx-table-body');
             tbody.innerHTML = '';
             
-            if (!customer.transactions || customer.transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic text-xs font-bold">No passbook records.</td></tr>`;
+            if (!validTxs || validTxs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic text-xs font-bold">No passbook records up to this date.</td></tr>`;
             } else {
-                let sortedTxs = [...customer.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+                let sortedTxs = [...validTxs].sort((a, b) => new Date(a.date) - new Date(b.date));
                 let runningBal = 0;
                 
                 sortedTxs = sortedTxs.map(t => {
-                    runningBal += (t.type === 'given' ? t.amount : -t.amount);
+                    runningBal += (t.type === 'given' ? -t.amount : t.amount); // GIVEN is MINUS, TAKEN is PLUS
                     return { ...t, rBal: runningBal };
                 });
 
                 sortedTxs.reverse();
 
                 sortedTxs.forEach(t => {
-                    const givenAmt = t.type === 'given' ? '- ' + formatINR(t.amount) : '-';
-                    const takenAmt = t.type === 'taken' ? '+ ' + formatINR(t.amount) : '-';
+                    const givenAmt = t.type === 'given' ? formatINR(t.amount) : '-';
+                    const takenAmt = t.type === 'taken' ? formatINR(t.amount) : '-';
                     const rBalClass = t.rBal >= 0 ? 'text-emerald-600' : 'text-red-600';
                     
                     tbody.innerHTML += `
@@ -860,11 +897,11 @@
                         </div>
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
-                                <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1">Total Cash Out (Minus)</p>
+                                <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1">Total Amount Minus</p>
                                 <p class="text-xl font-black text-red-700">${formatINR(data.given)}</p>
                             </div>
                             <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Cash In (Plus)</p>
+                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Amount Plus</p>
                                 <p class="text-xl font-black text-emerald-800">${formatINR(data.taken)}</p>
                             </div>
                         </div>
@@ -910,7 +947,6 @@
             });
         };
 
-        // --- Database Writes ---
         window.addCustomer = async function(e) {
             e.preventDefault();
             const name = document.getElementById('new-cust-name').value.trim();
